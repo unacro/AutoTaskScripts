@@ -1,0 +1,12 @@
+{
+  "excel_file": "./PCBS Parts & Unlock Levels v9.xlsx",
+  "default_sheet_name": "CPUs",
+  "mysql": {
+    "host": "localhost",
+    "port": 3306,
+    "username": "root",
+    "password": "",
+    "database": "ExcelBackup",
+    "charset": "utf8"
+  }
+}
