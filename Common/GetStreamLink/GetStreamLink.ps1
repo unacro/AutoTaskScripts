@@ -95,6 +95,7 @@ function Read-Config {
     }
 }
 [void][System.Reflection.Assembly]::LoadWithPartialName('Microsoft.VisualBasic')
+Add-Type -AssemblyName System.Windows.Forms
 function Get-InputBox {
     [CmdletBinding()]
     param (
@@ -107,12 +108,13 @@ function Get-InputBox {
     return [Microsoft.VisualBasic.Interaction]::InputBox($Prompt, $Title, $DefaultResponse)
 }
 function Get-MsgBox {
-    [CmdletBinding()]
     param (
         [String]$Prompt = (Read-UnicodeString "\u8bf7\u8f93\u5165\u6b63\u786e\u683c\u5f0f\u7684\u76f4\u64ad\u95f4\u5730\u5740\uff01"),
         [System.Windows.Forms.MessageBoxButtons]$Buttons = [System.Windows.Forms.MessageBoxButtons]::OK,
         [String]$Title = (Read-UnicodeString "\u83b7\u53d6\u76f4\u64ad\u6e90\u5931\u8d25")
+        #, [System.Windows.Forms.MessageBoxIcon]$Icon = [System.Windows.Forms.MessageBoxIcon]::None
     )
+    #return [System.Windows.Forms.MessageBox]::Show($Prompt, "aaa"+$Title, $Buttons, $Icon)
     return [Microsoft.VisualBasic.Interaction]::MsgBox($Prompt, $Buttons, $Title)
 }
 function Get-LiveUrl {
@@ -129,13 +131,13 @@ function Get-LiveUrl {
         if ($script:METAINFO.never_closed -eq "true") {
             Write-Log -Level DIVIDER
             $first_use = "VB \u7684 InputBox \u65e0\u8bba\u662f\u300c\u76f4\u63a5\u70b9\u51fb\u53d6\u6d88/\u9000\u51fa\u300d\u8fd8\u662f\u300c\u4fdd\u6301"
-            $first_use += "\u8f93\u5165\u6846\u4e3a\u7a7a\u70b9\u51fb\u786e\u5b9a\u300d`n\u90fd\u4f1a\u8fd4\u56de\u957f\u5ea6\u4e3a\u96f6\u7684\u5b57\u7b26"
+            $first_use += "\u8f93\u5165\u6846\u4e3a\u7a7a\u70b9\u51fb\u786e\u5b9a\u300d\u90fd\u4f1a\u8fd4\u56de\u957f\u5ea6\u4e3a\u96f6\u7684\u5b57\u7b26"
             $first_use += "\u4e32`n\u6240\u4ee5\u6ca1\u529e\u6cd5\u5224\u65ad\u7528\u6237\u662f\u8f93\u5165\u9519\u8bef\u8fd8\u662f\u60f3\u8981\u4e3b\u52a8"
-            $first_use += "\u9000\u51fa\u7a0b\u5e8f \u56e0\u6b64\u7a7a\u8f93\u5165\u672c\u7a0b\u5e8f\u4e00\u5f8b\u89c6\u4e3a\u9000\u51fa"
-            Write-Log $first_use WARN
-            $first_use = "\u8fd9\u4e2a\u8b66\u793a\u53ea\u4f1a\u5728\u7b2c\u4e00\u6b21\u4f7f\u7528\u7684\u65f6\u5019\u63d0\u9192\uff0c"
-            $first_use += "\u4ee5\u540e\u63a7\u5236\u53f0\u7a97\u53e3\u5c06\u968f\u7740\u7a0b\u5e8f\u7ed3\u675f\u4e00\u8d77\u5173\u95ed\u3002"
-            Write-Log $first_use
+            $first_use = Read-UnicodeString ($first_use += "\u9000\u51fa\u7a0b\u5e8f \u56e0\u6b64\u7a7a\u8f93\u5165\u672c\u7a0b\u5e8f\u4e00\u5f8b\u89c6\u4e3a\u9000\u51fa")
+            Write-Host $first_use -ForegroundColor Yellow
+            $first_use = "\u8fd9\u4e2a\u63d0\u9192\u53ea\u4f1a\u5728\u7b2c\u4e00\u6b21\u4f7f\u7528\u7684\u65f6\u5019\u663e\u793a\uff0c"
+            $first_use = Read-UnicodeString ($first_use += "\u4ee5\u540e\u63a7\u5236\u53f0\u7a97\u53e3\u5c06\u968f\u7740\u7a0b\u5e8f\u7ed3\u675f\u4e00\u8d77\u5173\u95ed\u3002")
+            Write-Host $first_use -ForegroundColor Cyan
             $config_path = $script:ROOT_PATH + "\config.xml"
             $xml_data = [xml](Get-Content $config_path)
             if ($null -ne $xml_data.SelectSingleNode("//never_closed")) {
@@ -268,7 +270,7 @@ do {
         $tips = Read-UnicodeString "\u4ece $($INPUT_URL) \u0020\u83b7\u53d6\u76f4\u64ad\u6e90\u5931\u8d25\uff01`n\u539f\u56e0\uff1a$($script:LIVE_INFO)"
         #$tips += Read-UnicodeString "#"
         Write-Log $tips.Replace("`n", " ") WARN
-        $nil = Get-MsgBox -Prompt $tips
+        $nil = Get-MsgBox -Prompt $tips -ErrorAction Stop
         $INPUT_URL = $null
     }
 } while ($null -eq $stream_link -or $stream_link -eq "")
