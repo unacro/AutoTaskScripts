@@ -72,7 +72,7 @@ function Read-Config {
         $xml_writer.WriteStartElement('config')
         $xml_writer.WriteAttributeString('version', '1.0.2')
         $xml_writer.WriteStartElement('metainfo')
-        $xml_writer.WriteAttributeString('ref', 'https://www.52pojie.cn/thread-xxxxxxx-1-1.html')
+        $xml_writer.WriteAttributeString('ref', 'https://www.52pojie.cn/thread-1096152-1-1.html')
         $xml_writer.WriteAttributeString('author', 'Rakuyo')
         $xml_writer.WriteElementString('app_version', '1.0.2')
         $xml_writer.WriteElementString('app_updated', '2020.01.29')
@@ -217,7 +217,7 @@ function Get-StreamLink {
     }
     return $stream_link
 }
-$begin = "\u6ce8\u610f\uff1a\u4ece\u76f4\u64ad\u95f4\u83b7\u53d6\u76f4\u64ad\u6e90\u5931\u8d25\u540e\u7b2c\u4e09\u884c"
+$begin = "\u6ce8\u610f\uff1a\u5c1d\u8bd5\u4ece\u76f4\u64ad\u95f4\u83b7\u53d6\u76f4\u64ad\u6e90\u4e4b\u540e\u7b2c\u4e09\u884c"
 $begin += "\u9644\u8fd1\u7684\u5b57\u4f1a\u91cd\u5f71 \u539f\u56e0\u4e0d\u660e`n\u4e3a\u4e86\u5728\u4e0d\u6539\u4ee3"
 $begin += "\u7801\u9875\u7684\u524d\u63d0\u4e0b\u8f93\u51fa\u4e2d\u6587\u5230\u63a7\u5236\u53f0 \u6211\u7528\u4e86"
 $begin += "\u4e00\u4e2a\u53d6\u5de7\u7684\u65b9\u5f0f`n\u6682\u65f6\u6ca1\u627e\u5230\u66f4\u597d\u7684\u65b9\u6848"
@@ -227,7 +227,9 @@ Write-Log -Level DIVIDER
 Read-Config
 Write-Log -Level DIVIDER
 $begin = "\u76f4\u64ad\u6e90\u83b7\u53d6\u5de5\u5177 v1.0.2 \u6700\u540e\u66f4\u65b0\u4e8e2020.01.29`nRakuyo \u9996\u53d1\u4e8e\u543e\u7231\u7834\u89e3\u8bba\u575b "
-$begin = Read-UnicodeString ($begin += "www.52pojie.cn`nbug\u53cd\u9988\u548c\u6539\u5584\u5efa\u8bae\u8bf7\u524d\u5f80 $($script:METAINFO.ref) \u7559\u8a00")
+$begin += "www.52pojie.cn`nbug\u53cd\u9988\u548c\u6539\u5584\u5efa\u8bae\u8bf7\u524d\u5f80 $($script:METAINFO.ref) \u7559\u8a00`n"
+$begin += "\u6e90\u7801\u4ed3\u5e93 https://github.com/Cyanashi/AutoTaskScripts/blob/master/Common/GetStreamLink/GetStreamLink.ps1"
+$begin = Read-UnicodeString ($begin)
 Write-Host $begin -ForegroundColor Cyan
 Write-Log -Level DIVIDER
 $INPUT_URL = $null
