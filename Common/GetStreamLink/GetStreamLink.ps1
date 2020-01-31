@@ -185,25 +185,25 @@ function Get-StreamLink {
     }
     $script:LIVE_STREAMER = $null
     if ($script:LIVE_SITE.ToLower() -eq "bilibili") {
-        $response = Invoke-WebRequest -URI $URI.Bilibili | Select-Object -ExpandProperty Content | ConvertFrom-Json
+        $response = Invoke-WebRequest -URI $URI.Bilibili -UseBasicParsing | Select-Object -ExpandProperty Content | ConvertFrom-Json
         if ($response.data.live_status -eq 0) {
             $script:LIVE_INFO = ConvertTo-ZhCN "B\u7ad9\u76f4\u64ad\u95f4$($script:LIVE_ROOM_ID)\u6ca1\u6709\u5f00\u64ad"
-            return $null
+            return ""
         }
         # 数据抓取成功 开始解析直播源...
         Write-Log "\u6570\u636e\u6293\u53d6\u6210\u529f \u5f00\u59cb\u89e3\u6790\u76f4\u64ad\u6e90..."
         $user_info_api = "http://api.bilibili.com/x/space/acc/info?mid=$($response.data.uid)&jsonp=jsonp"
-        $streamer_info = Invoke-WebRequest -URI $user_info_api | Select-Object -ExpandProperty Content | ConvertFrom-Json
+        $streamer_info = Invoke-WebRequest -URI $user_info_api -UseBasicParsing | Select-Object -ExpandProperty Content | ConvertFrom-Json
         $script:LIVE_STREAMER = $streamer_info.data.name
         $temp_stream = "https://cn-hbxy-cmcc-live-01.live-play.acgvideo.com/live-bvc/live_" + ($response.data.play_url.durl[0].url -split "/live_")[1]
         $stream_link = ($temp_stream -split ".flv?")[0].Replace("_1500", "") + ".m3u8"
     }
     elseif ($script:LIVE_SITE.ToLower() -eq "douyu") {
-        $response = Invoke-WebRequest -URI $URI.Douyu | Select-Object -ExpandProperty Content | ConvertFrom-Json
+        $response = Invoke-WebRequest -URI $URI.Douyu -UseBasicParsing | Select-Object -ExpandProperty Content | ConvertFrom-Json
         if ($response.state -eq "NO") {
             Write-Log "$($response.info)" DEBUG
             $script:LIVE_INFO = ConvertTo-ZhCN "\u6597\u9c7c\u76f4\u64ad\u95f4$($script:LIVE_ROOM_ID)\u6ca1\u6709\u5f00\u64ad"
-            return $null
+            return ""
         }
         Write-Log "\u6570\u636e\u6293\u53d6\u6210\u529f \u5f00\u59cb\u89e3\u6790\u76f4\u64ad\u6e90..."
         $script:LIVE_STREAMER = $response.Rendata.data.nickname
@@ -213,13 +213,13 @@ function Get-StreamLink {
     elseif ($script:LIVE_SITE.ToLower() -eq "huya") {
         $ContentType = "application/x-www-form-urlencoded"
         $UserAgent = "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Mobile Safari/537.36"
-        $response = Invoke-WebRequest -URI $URI.Huya -ContentType $ContentType -UserAgent $UserAgent | Select-Object -ExpandProperty Content
+        $response = Invoke-WebRequest -URI $URI.Huya -UseBasicParsing -ContentType $ContentType -UserAgent $UserAgent | Select-Object -ExpandProperty Content
         # $stat_info = "{" + ((($response -split "STATINFO")[1] -split "{")[1] -split "};")[0] + "}"
         # $temp_stream = [regex]::matches($response, "hasvedio: '(.*\.m3u8).*", "IgnoreCase")
         $live_status = (($response -split "totalCount: '")[1] -split "',")[0]
         if ($live_status -eq "") {
             $script:LIVE_INFO = ConvertTo-ZhCN "\u864e\u7259\u76f4\u64ad\u95f4$($script:LIVE_ROOM_ID)\u6ca1\u6709\u5f00\u64ad"
-            return $null
+            return ""
         }
         Write-Log "\u6570\u636e\u6293\u53d6\u6210\u529f \u5f00\u59cb\u89e3\u6790\u76f4\u64ad\u6e90..."
         $script:LIVE_STREAMER = (($response -split "ANTHOR_NICK = '")[1] -split "';")[0]
@@ -286,17 +286,17 @@ do {
     else {
         # 尝试从直播间抓取直播源...
         Write-Log "\u5c1d\u8bd5\u4ece $($INPUT_URL) \u6293\u53d6\u76f4\u64ad\u6e90..."
-        $stream_link = Get-StreamLink $INPUT_URL
-        if ($stream_link -eq "") {
+        $stream_link = Get-StreamLink
+        if ($null -eq $stream_link -or $stream_link -eq "") {
             # 从直播间获取直播源失败
             $tips = ConvertTo-ZhCN "\u4ece $($INPUT_URL) \u0020\u83b7\u53d6\u76f4\u64ad\u6e90\u5931\u8d25\uff01`n\u539f\u56e0\uff1a$($script:LIVE_INFO)"
             #$tips += ConvertTo-ZhCN "#"
             Write-Log $tips.Replace("`n", " ") WARN
             $nil = Get-MsgBox -Prompt $tips -ErrorAction Stop
-            $INPUT_URL = $null
+            $INPUT_URL = $null # 初始化输入 进入下一次循环
         }
     }
-} while ($null -eq $stream_link)
+} while ($null -eq $stream_link -or $stream_link -eq "")
 Set-Clipboard $stream_link
 # 直播源解析成功 已复制到剪切板
 Write-Log "\u76f4\u64ad\u6e90\u89e3\u6790\u6210\u529f \u5df2\u590d\u5236\u5230\u526a\u5207\u677f"
