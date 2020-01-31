@@ -324,10 +324,6 @@ B站直播整活不太行，24小时直播的影视频道还是挺有价值的�
 
 欢迎反映BUG或提出改进意见~
 
-### 下载方式
-「[蓝奏](https://www.lanzous.com/i8x97qd)」「[度盘 提取码: 52pj](https://pan.baidu.com/s/117uPPaxK0D_pNFIGUSFUWg)」
-「[Github Repo Fragment](https://github.com/Cyanashi/AutoTaskScripts/blob/master/Common/GetStreamLink/GetStreamLink.ps1)」复制粘贴到本地新建文本文档，修改后缀名为.ps1即可
-
 ### 食用方法
 具体的基本用法打开工具一看就懂，此处不再赘述。
 （小工具虽然很简陋，也有勉强还算友好的用户界面。）
@@ -376,6 +372,16 @@ asx其实就是一个功能特化的xml配置文件，它的默认打开方式�
 接下来只需要打开一个文件，所有流媒体源都被添加进来了，之后可以在播放器里选择播放哪个。
 最后，asx文件和一切脚本文件一样，写好内容之后保存退出，把`新建文本文档.txt`重命名成`现在你是直播源了.asx`也能用。
 
+### 下载方式
+「[蓝奏](https://www.lanzous.com/i8x97qd)」「[度盘 提取码: 52pj](链接: https://pan.baidu.com/s/1NvU8hYqptOiRE3qW6OzGqw#52pj)」
+「[Github Repo Fragment](https://github.com/Cyanashi/AutoTaskScripts/blob/master/Common/GetStreamLink/GetStreamLink.ps1)」复制粘贴到本地新建文本文档，修改后缀名为.ps1即可
+
+### 更新日志
+**2020.1.31 更新v1.0.3**
+* [新增]如果剪切板已有直播间地址，则打开工具后不再询问直接使用该地址进行解析
+* [修复]某些斗鱼直播间去掉清晰度后缀后会无法播放，因此获取到的斗鱼直播源统一加上`_4000p`的清晰度后缀
+* [修复]优化了提取直播间房间号的正则表达式
+* [修复]优化了部分判断逻辑 重命名部分函数使得含义更易理解
+
 ### TODO
-- [ ] 如果剪切板已有直播间地址，则打开工具后不再询问直接进行解析
 - [ ] 修复已知BUG：如果直播间处于下播后的轮播状态，可能会误判正在直播而尝试无效抓取（点名批评斗鱼暴雪直播间）
