@@ -1,6 +1,6 @@
 $script:ROOT_PATH = Split-Path -Parent $MyInvocation.MyCommand.Definition
-$script:VERSION = "1.0.3"
-$script:UPDATED_AT = "2020.1.31"
+$script:VERSION = "1.0.4"
+$script:UPDATED_AT = "2020.2.10"
 $script:METAINFO
 $script:PLAYER
 $script:DEFAULT
@@ -61,7 +61,10 @@ function Import-Config {
         if ($null -ne $script:PLAYER) {
             $script:PLAYER = [String]$script:PLAYER.Replace(" ", "")
         }
-        $script:DEFAULT = $xml_data.config.default.url
+        $script:DEFAULT = $xml_data.config.default
+        $script:DEFAULT.url = $script:DEFAULT.url.Replace("`n", "").Replace(" ", "")
+        $script:DEFAULT.site = $script:DEFAULT.site.Replace("`n", "").Replace(" ", "")
+        $script:DEFAULT.room_id = $script:DEFAULT.room_id.Replace("`n", "").Replace(" ", "")
     }
     else {
         # 读取失败 尝试初始化配置文件
@@ -152,9 +155,15 @@ function Input-LiveUrl {
         }
         exit
     }
+    if ($null -ne $script:DEFAULT.site -and $script:DEFAULT.site -ne "" -and !$input.contains(".") -and !$input.contains("/")) {
+        if ($script:DEFAULT.site.ToLower() -eq "cc") {
+            $script:DEFAULT.site = "cc.163"
+        }
+        $input = "$($script:DEFAULT.site).com/$($input)"
+    }
     return $input
 }
-function Format-LiveUrl {
+function Read-LiveUrl {
     [CmdletBinding()]
     param (
         [Parameter(ValueFromPipeline = $true)]
@@ -166,11 +175,11 @@ function Format-LiveUrl {
     elseif ($LiveUrl -match ".*\.com/([^/]*)" -and $matches[1].length -gt 0) {
         $temp_live_room = $matches[1]
     }
-    $temp_live_site = [regex]::matches($LiveUrl, "(bilibili|douyu|huya)", "IgnoreCase") | Select-Object -ExpandProperty Value
+    $temp_live_site = [regex]::matches($LiveUrl, "(bilibili|cc.163|douyu|huya)", "IgnoreCase") | Select-Object -ExpandProperty Value
     if ($null -ne $temp_live_room -and $null -ne $temp_live_site) {
         $script:LIVE_ROOM_ID = $temp_live_room
-        $script:LIVE_SITE = $temp_live_site
-        return $LiveUrl
+        $script:LIVE_SITE = $temp_live_site.Replace(".163", "")
+        return $LiveUrl.Replace("`n", "").Replace(" ", "")
     }
     return $null
 }
@@ -182,6 +191,7 @@ function Get-StreamLink {
         Bilibili = "https://api.live.bilibili.com/xlive/web-room/v1/index/getRoomPlayInfo?room_id=$($script:LIVE_ROOM_ID)&play_url=1&mask=1&qn=0&platform=web";
         Douyu    = "https://web.sinsyth.com/lxapi/douyujx.x?roomid=$($script:LIVE_ROOM_ID)";
         Huya     = "https://m.huya.com/$($script:LIVE_ROOM_ID)";
+        CC       = "https://vapi.cc.163.com/video_play_url/$($script:LIVE_ROOM_ID)?vbrname=blueray";
     }
     $script:LIVE_STREAMER = $null
     if ($script:LIVE_SITE.ToLower() -eq "bilibili") {
@@ -196,7 +206,35 @@ function Get-StreamLink {
         $streamer_info = Invoke-WebRequest -URI $user_info_api -UseBasicParsing | Select-Object -ExpandProperty Content | ConvertFrom-Json
         $script:LIVE_STREAMER = $streamer_info.data.name
         $temp_stream = "https://cn-hbxy-cmcc-live-01.live-play.acgvideo.com/live-bvc/live_" + ($response.data.play_url.durl[0].url -split "/live_")[1]
-        $stream_link = ($temp_stream -split ".flv?")[0].Replace("_1500", "") + ".m3u8"
+        $stream_link = ($temp_stream -split ".flv?")[0].Replace("_1500", "_1500") + ".m3u8" # 经测试某些直播源删掉清晰度画面会损坏
+    }
+    elseif ($script:LIVE_SITE.ToLower() -eq "cc") {
+        $timestamp_hex = "{0:x}" -f [Int](([DateTime]::Now.ToUniversalTime().Ticks - 621355968000000000) / 10000000).tostring().Substring(0, 10)
+        $sid = Invoke-WebRequest -URI "https://vapi.cc.163.com/sid?src=webcc" -UseBasicParsing
+        $URI.CC += "&t=$($timestamp_hex)&sid=$($sid)&urs=null&src=webcc_4000&vbrmode=1&secure=1"
+        try {
+            $response = Invoke-WebRequest -URI $URI.CC -UseBasicParsing | Select-Object -ExpandProperty Content | ConvertFrom-Json
+        }
+        catch {
+            $result = $_.Exception.Response.GetResponseStream()
+            $reader = New-Object System.IO.StreamReader($result)
+            $reader.BaseStream.Position = 0
+            $reader.DiscardBufferedData()
+            $response = $reader.ReadToEnd() | ConvertFrom-Json
+        }
+        if ($null -ne $response.code) {
+            if ($response.code -eq "Gone") {
+                $script:LIVE_INFO = ConvertTo-ZhCN "CC\u76f4\u64ad\u95f4$($script:LIVE_ROOM_ID)\u6ca1\u6709\u5f00\u64ad"
+            }
+            else {
+                $script:LIVE_INFO = ConvertTo-ZhCN "CC\u76f4\u64ad\u95f4$($script:LIVE_ROOM_ID)\u6ca1\u6709\u5f00\u64ad"
+            }
+            return ""
+        }
+        # 数据抓取成功 开始解析直播源...
+        Write-Log "\u6570\u636e\u6293\u53d6\u6210\u529f \u5f00\u59cb\u89e3\u6790\u76f4\u64ad\u6e90..."
+        $script:LIVE_STREAMER = $script:LIVE_ROOM_ID #TODO 获取主播名字
+        $stream_link = $response.videourl
     }
     elseif ($script:LIVE_SITE.ToLower() -eq "douyu") {
         $response = Invoke-WebRequest -URI $URI.Douyu -UseBasicParsing | Select-Object -ExpandProperty Content | ConvertFrom-Json
@@ -244,26 +282,44 @@ Write-Host $begin -ForegroundColor Cyan
 Write-Log -Level DIVIDER
 $INPUT_URL = $null
 if ($null -eq $args[0]) {
-    if ($script:DEFAULT.Length -gt 0) {
+    if ($null -ne $script:DEFAULT.url -and $script:DEFAULT.url -ne "") {
         # 检测到设置了默认直播间地址 将直接使用默认直播间
-        Write-Log "\u68c0\u6d4b\u5230\u8bbe\u7f6e\u4e86\u9ed8\u8ba4\u76f4\u64ad\u95f4\u5730\u5740\u5c06\u76f4\u63a5\u4f7f\u7528\u9ed8\u8ba4\u76f4\u64ad\u95f4"
-        $INPUT_URL = $script:DEFAULT
+        Write-Log "\u68c0\u6d4b\u5230\u8bbe\u7f6e\u4e86\u9ed8\u8ba4\u76f4\u64ad\u95f4\u5730\u5740 $($script:DEFAULT.url) \u5c06\u76f4\u63a5\u4f7f\u7528\u9ed8\u8ba4\u76f4\u64ad\u95f4"
+        $INPUT_URL = $script:DEFAULT.url | Read-LiveUrl
     }
     else {
-        $INPUT_URL = Get-Clipboard | Format-LiveUrl
+        $INPUT_URL = Get-Clipboard | Read-LiveUrl
         if ($null -ne $INPUT_URL) {
             # 从剪切板读取到直播间地址 将直接处理
             Write-Log "\u4ece\u526a\u5207\u677f\u8bfb\u53d6\u5230\u76f4\u64ad\u95f4\u5730\u5740 $($INPUT_URL) \u5c06\u76f4\u63a5\u5904\u7406"
+        }
+        else {
+            if ($null -ne $script:DEFAULT.room_id -and $script:DEFAULT.room_id -ne "") {
+                # 检测到设置了默认直播间房间号
+                Write-Log "\u68c0\u6d4b\u5230\u8bbe\u7f6e\u4e86\u9ed8\u8ba4\u76f4\u64ad\u95f4\u623f\u95f4\u53f7 $($script:DEFAULT.room_id)"
+                $script:LIVE_ROOM_ID = $script:DEFAULT.room_id
+                if ($null -ne $script:DEFAULT.site -and $script:DEFAULT.site -ne "") {
+                    # 检测到设置了默认直播平台 组装直播间地址
+                    Write-Log "\u68c0\u6d4b\u5230\u8bbe\u7f6e\u4e86\u9ed8\u8ba4\u76f4\u64ad\u5e73\u53f0 $($script:DEFAULT.site) \u7ec4\u88c5\u76f4\u64ad\u95f4\u5730\u5740"
+                    $script:LIVE_SITE = $script:DEFAULT.site
+                }
+                else {
+                    # 未检测到直播平台缺省值 将默认使用「斗鱼」组装地址
+                    Write-Log "\u672a\u68c0\u6d4b\u5230\u76f4\u64ad\u5e73\u53f0\u7f3a\u7701\u503c \u5c06\u9ed8\u8ba4\u4f7f\u7528\u300c\u6597\u9c7c\u300d\u7ec4\u88c5\u5730\u5740"
+                    $script:LIVE_SITE = "douyu"
+                }
+                $INPUT_URL = "$($script:LIVE_SITE).com/$($script:LIVE_ROOM_ID)"
+            }
         }
     }
 }
 else {
     if (Test-Path $args[0]) {
         $script:PLAYER = $args[0]
-        $INPUT_URL = $args[1]
+        $INPUT_URL = $args[1] | Read-LiveUrl
     }
     else {
-        $INPUT_URL = $args[0]
+        $INPUT_URL = $args[0] | Read-LiveUrl
         if ($null -ne $args[1]) {
             if (Test-Path $args[1]) {
                 $script:PLAYER = $args[1]
@@ -275,7 +331,7 @@ do {
     if ($null -eq $INPUT_URL) {
         # 请在弹出的对话框中输入要解析的直播间网址
         Write-Log "\u8bf7\u5728\u5f39\u51fa\u7684\u5bf9\u8bdd\u6846\u4e2d\u8f93\u5165\u8981\u89e3\u6790\u7684\u76f4\u64ad\u95f4\u7f51\u5740"
-        $INPUT_URL = Input-LiveUrl | Format-LiveUrl
+        $INPUT_URL = Input-LiveUrl | Read-LiveUrl
     }
     if ($null -eq $INPUT_URL) {
         # 输入的内容不是合法的直播间网址格式
@@ -331,8 +387,14 @@ elseif ($choose -eq "No") {
         <ref href=`"" + $stream_link + "`"/>
     </entry>
 </asx>"
-    $output_path = "$($script:ROOT_PATH)\$($script:LIVE_SITE)_$($script:LIVE_ROOM_ID).asx"
+    $live_path = "$($script:ROOT_PATH)\live"
+    if (!(Test-Path $live_path)) {
+        $nil = New-Item -ItemType Directory -Force -Path $live_path
+    }
+    $output_path = "$($live_path)\$($script:LIVE_SITE)_$($script:LIVE_ROOM_ID).asx"
     Write-Output $asx_content | out-file -filepath $output_path
+    # 已生成asx文件
+    Write-Log "\u5df2\u751f\u6210asx\u6587\u4ef6 $($output_path)"
 }
 elseif ($choose -eq "Cancel") {
     # Nothing to do
