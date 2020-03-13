@@ -324,7 +324,7 @@ B站直播整活不太行，24小时直播的影视频道还是挺有价值的�
 #### 命令行
 ```powershell
 Start-Process powershell -ArgumentList "D:\Workspace\Powershell\project\live\GetStreamLink.ps1 [播放器路径] [直播间地址]"
-# 两个参数可以呼唤位置
+# 两个参数可以互换位置
 ./GetStreamLink.ps1 [播放器路径] [直播间地址]
 # 和
 ./GetStreamLink.ps1 [直播间地址] [播放器路径]
@@ -336,7 +336,7 @@ Start-Process powershell -ArgumentList "D:\Workspace\Powershell\project\live\Get
 初次运行脚本后会生成配置文件`config.xml`，里面的`<default></default>`标签里有对`<url></url>`，在里面填上直播间地址之后，如果不带参数地打开程序，就会自动指定配置文件里的网址，而不必再手动输入。
 
 > 缺点是目前只能指定一个，暂时没有做顺序列表的预定
-> site和room_id是为了以后扩展更方便的输入方式（比如只需要输直播间房间号）用的，现在没用
+> ~~site和room_id是为了以后扩展更方便的输入方式（比如只需要输直播间房间号）用的，现在没用~~ 2020.2.10已更新v1.0.4
 
 #### asx文件的玩法
 asx其实就是一个功能特化的xml配置文件，它的默认打开方式是播放器，打开就会播放预先设定好的流媒体，乍一看非常神奇。
@@ -398,6 +398,9 @@ A：优先级从上至下：使用命令行参数启动，配置文件设置了d
 * [新增]如果配置文件设定了直播站，可以直接输入房间号进行解析；如果配置文件同时设定了直播站和房间号，则直接进行解析
 * [新增]支持了网易cc的临时直播源，感谢「[天川天音的提议](https://www.52pojie.cn/forum.php?mod=redirect&goto=findpost&ptid=1096152&pid=29771971)」和「[网易CC直播源抓取分析过程](https://www.52pojie.cn/thread-1056116-1-1.html)」一文提供的思路
 * [修复]以各种方式启动后的直播间地址部分处理逻辑错误
+
+**2020.3.5 更新v1.0.5**
+* [修复]虎牙直播源失效
 
 ### TODO
 - [ ] 修复已知BUG：如果直播间处于下播后的轮播状态，可能会误判正在直播而尝试无效抓取（点名批评斗鱼暴雪直播间）

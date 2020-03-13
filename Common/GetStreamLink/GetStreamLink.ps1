@@ -1,6 +1,6 @@
 $script:ROOT_PATH = Split-Path -Parent $MyInvocation.MyCommand.Definition
-$script:VERSION = "1.0.4"
-$script:UPDATED_AT = "2020.2.10"
+$script:VERSION = "1.0.5"
+$script:UPDATED_AT = "2020.3.5"
 $script:METAINFO
 $script:PLAYER
 $script:DEFAULT
@@ -261,7 +261,7 @@ function Get-StreamLink {
         }
         Write-Log "\u6570\u636e\u6293\u53d6\u6210\u529f \u5f00\u59cb\u89e3\u6790\u76f4\u64ad\u6e90..."
         $script:LIVE_STREAMER = (($response -split "ANTHOR_NICK = '")[1] -split "';")[0]
-        $stream_link = "http:" + (($response -split "hasvedio: '")[1] -split "_")[0] + ".m3u8"
+        $stream_link = "http://al.rtmp.huya.com/backsrc/" + ((($response -split "hasvedio: '")[1] -split "_")[0] -split "src/")[1] + ".m3u8"
     }
     return $stream_link
 }
