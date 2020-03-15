@@ -1,10 +1,6 @@
 /**
  * Author：Cyanashi(imwhtl@gmail.com)
- * Version: 1.0.0
- * 按键绑定：
- * 打开或关闭技能面板 除了S的随便哪个键 我是U
- * 强制原地站立 S
- * 强制移动 A
+ * Version: 1.0.1
  */
 
 #Include %A_LineFile%\..\Diablo3Config.ahk
@@ -227,12 +223,10 @@ XButton2::
         gosub LabelClear
         MapStatus := false
         MoveStatus := true
+    } else if (MoveStatus) {
+        MoveStatus := false
     } else {
-        if (MoveStatus) {
-            MoveStatus := false
-        } else {
-            MoveStatus := true
-        }
+        MoveStatus := true
     }
     ;debug()
     execAutoMove()
@@ -244,12 +238,10 @@ XButton1::
         gosub LabelClear
         MapStatus := false
         FireStatus := true
+    } else if (FireStatus) {
+        FireStatus := false
     } else {
-        if (FireStatus) {
-            FireStatus := false
-        } else {
-            FireStatus := true
-        }
+        FireStatus := true
     }
     execAutoFire()
 Return
@@ -306,17 +298,21 @@ Return
 
 ;按下鼠标右键不放
 ~*RButton::
-    RMButtonStatus = true
-    stopAllAction()
+    if (!MapStatus) {
+        RMButtonStatus = true
+        stopAllAction()
+    }
 Return
 
 ;松开鼠标右键
 *RButton Up::
-    RMButtonStatus = false
-    if (MoveStatus) {
-        execAutoMove()
-    } else if (FireStatus) {
-        execAutoFire()
+    if (!MapStatus) {
+        RMButtonStatus = false
+        if (MoveStatus) {
+            execAutoMove()
+        } else if (FireStatus) {
+            execAutoFire()
+        }
     }
 Return
 
