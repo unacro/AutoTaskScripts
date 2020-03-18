@@ -8,8 +8,8 @@
 CoordMode, Mouse, Client ; 将命令的坐标模式设置为相对于活动窗口
 SetKeyDelay, 20 ; 键盘延时
 SetMouseDelay, 20 ; 鼠标延时
-global App := new Diablo3Config()
-KeyQuit := App.KEY_QUIT ; [终止并退出脚本] 键位
+global APP := new Diablo3Config()
+KeyQuit := APP.KEY_QUIT ; [终止并退出脚本] 键位
 Loop, Parse, KeyQuit, |
 {
     OneKey :=  Trim(A_LoopField, "{}")
@@ -24,33 +24,33 @@ global FireStatus := false ; 自动开火输出 true/false 开启/关闭
 global MapStatus := false ; 小地图状态 true/false 开启/关闭
 global RMButtonStatus := false ; 鼠标右键状态 true/false 按下/弹起
 
-global KeySkill1 := App.KEY_SKILL[1] ; [技能1] 键位
-global KeySkill2 := App.KEY_SKILL[2] ; [技能2] 键位
-global KeySkill3 := App.KEY_SKILL[3] ; [技能3] 键位
-global KeySkill4 := App.KEY_SKILL[4] ; [技能4] 键位
-global KeyStartMove := App.KEY_START_MOVE ; [自动移动] 键位
-global KeyStartFire := App.KEY_START_FIRE ; [自动输出] 键位
-global KeySwitchAutoMode := App.KEY_SWITCH_AUTOMODE ; [切换自动模式] 键位
-global KeyResetAutoMode := App.KEY_RESET_AUTOMODE ; [重置自动模式] 键位
-global KeyHearthstone := App.KEY_HEARTHSTONE ; [回城] 键位
-global KeySwitchParagonMain := App.KEY_SWITCH_PARAGON_MAIN ; [切换巅峰到主属性] 键位
-global KeySwitchParagonHealth := App.KEY_SWITCH_PARAGON_HP ; [切换巅峰到体能] 键位
-global KeyQuickConfim := App.KEY_QUICK_CONFIM ; [快速确认] 键位
-global KeyQuickEnchant := App.KEY_QUICK_ENCHANT ; [快速附魔] 键位
-global KeyAutoFixAndBreak := App.KEY_AUTO_FIX_AND_BREAK ; [自动修理并分解蓝白黄] 键位
-global KeyAutoCastBloodShard := App.KEY_AUTO_CAST_BLOODSHARD ; [自动赌血岩] 键位
-global KeyClear := App.KEY_CLEAR ; [关闭所有打开的窗口] 键位
-global KeyDebug := App.KEY_DEBUG ; [显示调试信息] 键位
+global KeySkill1 := APP.KEY_SKILL[1] ; [技能1] 键位
+global KeySkill2 := APP.KEY_SKILL[2] ; [技能2] 键位
+global KeySkill3 := APP.KEY_SKILL[3] ; [技能3] 键位
+global KeySkill4 := APP.KEY_SKILL[4] ; [技能4] 键位
+global KeyStartMove := APP.KEY_START_MOVE ; [自动移动] 键位
+global KeyStartFire := APP.KEY_START_FIRE ; [自动输出] 键位
+global KeySwitchAutoMode := APP.KEY_SWITCH_AUTOMODE ; [切换自动模式] 键位
+global KeyResetAutoMode := APP.KEY_RESET_AUTOMODE ; [重置自动模式] 键位
+global KeyHearthstone := APP.KEY_HEARTHSTONE ; [回城] 键位
+global KeySwitchParagonMain := APP.KEY_SWITCH_PARAGON_MAIN ; [切换巅峰到主属性] 键位
+global KeySwitchParagonHealth := APP.KEY_SWITCH_PARAGON_HP ; [切换巅峰到体能] 键位
+global KeyQuickConfim := APP.KEY_QUICK_CONFIM ; [快速确认] 键位
+global KeyQuickEnchant := APP.KEY_QUICK_ENCHANT ; [快速附魔] 键位
+global KeyAutoFixAndBreak := APP.KEY_AUTO_FIX_AND_BREAK ; [自动修理并分解蓝白黄] 键位
+global KeyAutoCastBloodShard := APP.KEY_AUTO_CAST_BLOODSHARD ; [自动赌血岩] 键位
+global KeyClear := APP.KEY_CLEAR ; [关闭所有打开的窗口] 键位
+global KeyDebug := APP.KEY_DEBUG ; [显示调试信息] 键位
 
 global FireMode := 1 ; 自动开火模式
-global DelaySkill1 := App.FIRE_MODE_DELAY[FireMode][1]
-global DelaySkill2 := App.FIRE_MODE_DELAY[FireMode][2]
-global DelaySkill3 := App.FIRE_MODE_DELAY[FireMode][3]
-global DelaySkill4 := App.FIRE_MODE_DELAY[FireMode][4]
-global DelayLMButton := App.FIRE_MODE_DELAY[FireMode][5]
-global DelayRMButton := App.FIRE_MODE_DELAY[FireMode][6]
+global DelaySkill1 := APP.FIRE_MODE_DELAY[FireMode][1]
+global DelaySkill2 := APP.FIRE_MODE_DELAY[FireMode][2]
+global DelaySkill3 := APP.FIRE_MODE_DELAY[FireMode][3]
+global DelaySkill4 := APP.FIRE_MODE_DELAY[FireMode][4]
+global DelayLMButton := APP.FIRE_MODE_DELAY[FireMode][5]
+global DelayRMButton := APP.FIRE_MODE_DELAY[FireMode][6]
 
-global AvailableHundredParagon := Ceil((App.PARAGON+100-700) / 100) ; 有多少个可用的100巅峰(按住Ctrl) 向上取整
+global AvailableHundredParagon := Ceil((APP.PARAGON+100-700) / 100) ; 有多少个可用的100巅峰(按住Ctrl) 向上取整
 global ParagonResetX := transX(960)
 global ParagonResetY := transY(735)
 global ParagonLevelX := transX(1275)
@@ -230,12 +230,12 @@ transY(y) {
 }
 
 initSkillDelay() {
-    DelaySkill1 := App.FIRE_MODE_DELAY[FireMode][1]
-    DelaySkill2 := App.FIRE_MODE_DELAY[FireMode][2]
-    DelaySkill3 := App.FIRE_MODE_DELAY[FireMode][3]
-    DelaySkill4 := App.FIRE_MODE_DELAY[FireMode][4]
-    DelayLMButton := App.FIRE_MODE_DELAY[FireMode][5]
-    DelayRMButton := App.FIRE_MODE_DELAY[FireMode][6]
+    DelaySkill1 := APP.FIRE_MODE_DELAY[FireMode][1]
+    DelaySkill2 := APP.FIRE_MODE_DELAY[FireMode][2]
+    DelaySkill3 := APP.FIRE_MODE_DELAY[FireMode][3]
+    DelaySkill4 := APP.FIRE_MODE_DELAY[FireMode][4]
+    DelayLMButton := APP.FIRE_MODE_DELAY[FireMode][5]
+    DelayRMButton := APP.FIRE_MODE_DELAY[FireMode][6]
 }
 
 stopAutoMode() {
@@ -487,8 +487,8 @@ PrintDebugInfo:
     } else {
         str .= "地图 off`n`n"
     }
-    str .= "预设的巅峰等级 = " App.PARAGON "`n`n"
-    For index, value in App.FIRE_MODE_DELAY[FireMode]
+    str .= "预设的巅峰等级 = " APP.PARAGON "`n`n"
+    For index, value in APP.FIRE_MODE_DELAY[FireMode]
         str .= str + "Item " index " is '" value "'`n"
     str .= "`n[关闭所有打开的窗口]键 = " KeyClear
     MsgBox % str
