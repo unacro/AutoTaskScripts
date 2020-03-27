@@ -22,7 +22,7 @@
 
 ### Game 游戏脚本
 #### [Diablo3] 暗黑破坏神3按键脚本
-[AutoHotkey各分支演进图](https://maul-esel.github.io/ahkbook/en/images/versions.png)
+![AutoHotkey各分支演进图](https://maul-esel.github.io/ahkbook/en/images/versions.png)
 当初一心想用L2版本写，到现在都没个准信……用L1重构了。  
 
 #### [Jx3] 剑侠情缘网络版叁按键脚本
