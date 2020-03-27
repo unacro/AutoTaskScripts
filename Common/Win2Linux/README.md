@@ -10,7 +10,7 @@ Last Updated at: 2020-03-27
 
 ## Dependence
 使用此脚本之前需要准备好 **cwRsync 客户端**。  
-我是在[官网](https://www.rsync.net/resources/howto/windows_rsync.html)下的解压直接用的[绿色版](https://www.rsync.net/resources/binaries/cwRsync_5.4.1_x86_Free.zip)。  
+我是在[官网](https://www.rsync.net/resources/howto/windows_rsync.html)下的解压直接能用的[绿色版](https://www.rsync.net/resources/binaries/cwRsync_5.4.1_x86_Free.zip)。  
 
 ## Other
 如果 PowerShell 报错：  
