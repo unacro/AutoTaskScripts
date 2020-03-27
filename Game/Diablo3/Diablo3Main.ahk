@@ -1,6 +1,6 @@
 /**
  * Author: Cyanashi(imwhtl@gmail.com)
- * Version: 1.1.0
+ * Version: 1.1.1
  * Description: Main 主要业务逻辑
  */
 
@@ -28,6 +28,7 @@ global KeySkill1 := APP.KEY_SKILL[1] ; [技能1] 键位
 global KeySkill2 := APP.KEY_SKILL[2] ; [技能2] 键位
 global KeySkill3 := APP.KEY_SKILL[3] ; [技能3] 键位
 global KeySkill4 := APP.KEY_SKILL[4] ; [技能4] 键位
+global KeyForceStand := APP.KEY_FORCE_STAND ; [强制原地站立] 键位
 global KeyStartMove := APP.KEY_START_MOVE ; [自动移动] 键位
 global KeyStartFire := APP.KEY_START_FIRE ; [自动输出] 键位
 global KeySwitchAutoMode := APP.KEY_SWITCH_AUTOMODE ; [切换自动模式] 键位
@@ -170,8 +171,10 @@ Return
 ; 按下鼠标右键不放
 ~*RButton::
     if (!MapStatus) {
-        RMButtonStatus = true
-        stopAutoMode()
+        if (MoveStatus or FireStatus) {
+            RMButtonStatus = true
+            stopAutoMode()
+        }
     }
 Return
 
@@ -210,6 +213,17 @@ Return
 
 #IfWinActive
 
+hasValue(haystack, needle) {
+    if(!isObject(haystack))
+        return false
+    if(haystack.Length()==0)
+        return false
+    for k,v in haystack
+        if(v==needle)
+            return true
+    return false
+}
+
 printInitInfo() {
     global
     if (D3_Width > 0) {
@@ -239,6 +253,7 @@ initSkillDelay() {
 }
 
 stopAutoMode() {
+    Gosub, EndPressSkill
     SetTimer, UseClear, off
     SetTimer, UseSkill1, off
     SetTimer, UseSkill2, off
@@ -251,6 +266,7 @@ stopAutoMode() {
 execAutoMove() {
     if (MoveStatus) {
         ; MsgBox % "动啊铁奥"
+        Gosub, EndPressSkill
         SetTimer, UseClear, off
         SetTimer, UseSkill1, off
         SetTimer, UseSkill2, off
@@ -266,6 +282,7 @@ execAutoMove() {
 
 execAutoFire() {
     if (FireStatus) {
+        Gosub, StartPressSkill
         SetTimer, UseClear, 150
         ; MsgBox % "开火"
         if (DelaySkill1 > 0) {
@@ -330,12 +347,60 @@ Return
 
 UseLMButton:
     MouseGetPos, currentX, currentY
-    ControlClick, x%currentX% y%currentY%, ahk_class D3 Main Window Class ; Click
+    ControlClick, x%currentX% y%currentY%, ahk_class D3 Main Window Class, , , , NA ; Click
 Return
 
 UseRMButton:
     MouseGetPos, currentX, currentY
-    ControlClick, x%currentX% y%currentY%, ahk_class D3 Main Window Class, , Right ; Click Right
+    ControlClick, x%currentX% y%currentY%, ahk_class D3 Main Window Class, , Right, , NA ; Click Right
+Return
+
+StartPressSkill:
+    if (hasValue(APP.FIRE_MODE_DELAY[FireMode], 0)) {
+        ControlSend, , {%KeyForceStand% Down}, ahk_class D3 Main Window Class
+    }
+    if (DelaySkill1 = 0) {
+        ControlSend, , {%KeySkill1% Down}, ahk_class D3 Main Window Class
+    }
+    if (DelaySkill2 = 0) {
+        ControlSend, , {%KeySkill2% Down}, ahk_class D3 Main Window Class
+    }
+    if (DelaySkill3 = 0) {
+        ControlSend, , {%KeySkill3% Down}, ahk_class D3 Main Window Class
+    }
+    if (DelaySkill4 = 0) {
+        ControlSend, , {%KeySkill4% Down}, ahk_class D3 Main Window Class
+    }
+    if (DelayLMButton = 0) {
+        SendInput, {Click Down}
+    }
+    if (DelayRMButton = 0) {
+        SendInput, {Click Right Down}
+    }
+Return
+
+EndPressSkill:
+    if (hasValue(APP.FIRE_MODE_DELAY[FireMode], 0)) {
+        ControlSend, , {%KeyForceStand% Up}, ahk_class D3 Main Window Class
+    }
+    if (DelaySkill1 = 0) {
+        ControlSend, , {%KeySkill1% Up}, ahk_class D3 Main Window Class
+    }
+    if (DelaySkill2 = 0) {
+        ControlSend, , {%KeySkill2% Up}, ahk_class D3 Main Window Class
+    }
+    if (DelaySkill3 = 0) {
+        ControlSend, , {%KeySkill3% Up}, ahk_class D3 Main Window Class
+    }
+    if (DelaySkill4 = 0) {
+        ControlSend, , {%KeySkill4% Up}, ahk_class D3 Main Window Class
+    }
+    if (DelayLMButton = 0) {
+        SendInput, {Click Up}
+    }
+    if (DelayRMButton = 0) {
+        SendInput, {Click Right Up}
+    }
 Return
 
 DoMove:

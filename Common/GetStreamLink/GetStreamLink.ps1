@@ -1,6 +1,12 @@
+<##
+ # Author: Cyanashi(imwhtl@gmail.com)
+ # Version: 1.0.6
+ # Last_Updated: 2020-03-26
+ # Description: 直播源获取工具
+ #>
 $script:ROOT_PATH = Split-Path -Parent $MyInvocation.MyCommand.Definition
-$script:VERSION = "1.0.5"
-$script:UPDATED_AT = "2020.3.5"
+$script:VERSION = "1.0.6"
+$script:UPDATED_AT = "2020.3.26"
 $script:METAINFO
 $script:PLAYER
 $script:DEFAULT
@@ -58,8 +64,8 @@ function Import-Config {
         $xml_data = [xml](Get-Content $config_path)
         $script:METAINFO = $xml_data.config.metainfo
         $script:PLAYER = $xml_data.config.player.path
-        if ($null -ne $script:PLAYER) {
-            $script:PLAYER = [String]$script:PLAYER.Replace(" ", "")
+        if ($null -ne $script:PLAYER -and $script:PLAYER.Trim() -ne "") {
+            $script:PLAYER = [String]$script:PLAYER.Trim()
         }
         $script:DEFAULT = $xml_data.config.default
         $script:DEFAULT.url = $script:DEFAULT.url.Replace("`n", "").Replace(" ", "")

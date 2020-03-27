@@ -1,3 +1,9 @@
+/**
+ * Author: Cyanashi(imwhtl@gmail.com)
+ * Version: 1.0.1
+ * Description: APIx64 《剑侠情缘网络版叁》按键脚本 64位按键模拟驱动API
+ */
+
 class KeyboardDrive64
 {
     __New()

@@ -1,6 +1,6 @@
 /**
  * Author: Cyanashi(imwhtl@gmail.com)
- * Version: 1.0.0
+ * Version: 1.0.1
  * Description: Config 《剑侠情缘网络版叁》按键脚本 配置文件
  */
 
@@ -25,7 +25,7 @@ class Jx3Config {
     static KEY_AUTO_CLICK_R := "PgDn"
 
     ; [关闭所有自动模式] 键位
-    static KEY_RESET_AUTOMODE := "MButton|ESC|Enter|NumpadEnter|M"
+    static KEY_RESET_AUTOMODE := "MButton|Esc|Enter|NumpadEnter|M"
 
     ; [显示调试信息 / 测试模拟驱动效果] 键位
     static KEY_DEBUG := ["F6", "F7"]

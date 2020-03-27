@@ -1,6 +1,6 @@
 /**
  * Author: Cyanashi(imwhtl@gmail.com)
- * Version: 1.0.0
+ * Version: 1.0.1
  * Description: Main 《剑侠情缘网络版叁》按键脚本 主要业务逻辑
  */
 
@@ -24,9 +24,9 @@ if (A_Is64bitOS) {
 }
 if (A_PtrSize = 8) {
     AHK_BIT := 64
-    DD := new KeyboardDrive64() ; 64位驱动直接使用即可
+    global DD := new KeyboardDrive64() ; 64位驱动直接使用即可
 } else {
-    DD := new KeyboardDrive32() ; 32位驱动需要使用管理员权限启动脚本
+    global DD := new KeyboardDrive32() ; 32位驱动需要使用管理员权限启动脚本
 }
 
 #IfWinActive, ahk_exe JX3ClientX64.exe
@@ -112,14 +112,12 @@ Return
 #IfWinActive
 
 toDDCode(temp_key_name) {
-    global ; 必须加全局变量才能成功传参 就很怪 这里我甚至都没有新开局部变量
     Return DD.todc(GetKeyVK(temp_key_name))
 }
 
 forceSend(temp_key) {
-    global
     ; 版本 1.1.30.03 手册上写的 if Var is integer 无法通过编译
-    ; 修改为 if (Var is integer) 后字符串也能通过判断 真的怪
+    ; 修改为 if (Var is integer) 后字符串也能通过判断 就很怪
     if (floor(temp_key) > 0) {
         temp_key_ddcode := temp_key
     } else {
@@ -147,12 +145,6 @@ printInitInfo() {
     }
     env_tips .= "当前AHK脚本 " admin_level " 获得管理员权限"
     MsgBox, 4160, System Info,  %env_tips%
-    KeyQuit := APP.KEY_QUIT ; [终止并退出脚本] 键位
-    Loop, Parse, KeyQuit, |
-    {
-        OneKey :=  Trim(A_LoopField, "{}")
-        Hotkey, ~%OneKey%, Quit
-    }
 }
 
 transX(x) {
