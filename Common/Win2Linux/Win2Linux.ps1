@@ -60,7 +60,7 @@ function Test-Config {
             return $false
         }
         else {
-            Write-Host "[WARN] Not Set cwRsync`'s Path, Will Use Independent rsync & ssh Client."
+            Write-Host "[WARN] Not Set cwRsync Path, Will Use Independent rsync & ssh Client."
             $script:cwRsync.rsync = $config.rsyncPath
             $script:cwRsync.ssh = $config.sshPath
         }
