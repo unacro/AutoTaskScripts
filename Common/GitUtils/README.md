@@ -31,7 +31,7 @@ Last Updated at: 2020-03-31
 git add .
 git commit -m`"$($commitWithMessage)`"
 git push -u origin
-git push -u gitee
+git push gitee
 hexo clean
 hexo generate
 .\Win2Linux.ps1

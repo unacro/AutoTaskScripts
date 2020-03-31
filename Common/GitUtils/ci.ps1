@@ -8,14 +8,14 @@
 $debug = $false
 $curtime = Get-Date
 if ([String]::IsNullOrEmpty($args[0])) {
-  $commitWithMessage = "Updated at $($curtime)"
+  $commitWithMessage = "Updated@$($curtime)"
 }
 else {
   $extraMsg = [String]$args[0]
   For ($i = 1; $i -lt $args.Count; $i++) {
     $extraMsg += " $($args[$i])"
   }
-  $commitWithMessage = "Updated at $($curtime) $($extraMsg.Trim())"
+  $commitWithMessage = "Updated@$($curtime) $($extraMsg.Trim())"
 }
 $script:workspace = Split-Path -Parent $MyInvocation.MyCommand.Definition
 $script:autoDelete = "" # 需要删除的文件夹写在这里即可 比如 \public
