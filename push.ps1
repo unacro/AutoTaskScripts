@@ -1,17 +1,21 @@
 <##
  # Author: Cyanashi(imwhtl@gmail.com)
- # Version: 1.0.1
- # Last_Updated: 2020-03-27
+ # Version: 1.0.2
+ # Last_Updated: 2020-03-31
  # Description: 一键push
  #>
 
 $debug = $false
 $curtime = Get-Date
-if ($null -eq $args[0]) {
+if ([String]::IsNullOrEmpty($args[0])) {
   $commitWithMessage = "Updated at $($curtime)"
 }
 else {
-  $commitWithMessage = "Updated at $($curtime) $($args[0])"
+  $extraMsg = [String]$args[0]
+  For ($i = 1; $i -lt $args.Count; $i++) {
+    $extraMsg += " $($args[$i])"
+  }
+  $commitWithMessage = "Updated at $($curtime) $($extraMsg.Trim())"
 }
 $script:workspace = Split-Path -Parent $MyInvocation.MyCommand.Definition
 $script:autoDelete = "" # 需要删除的文件夹写在这里即可 比如 \public
@@ -19,7 +23,7 @@ $script:commandString = @"
 git add .
 git commit -m`"$($commitWithMessage)`"
 git push -u origin
-git push -u gitee
+git push gitee
 "@
 
 <##

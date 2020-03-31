@@ -16,11 +16,11 @@ hugo server
 
 ## GitUtils 自动部署脚本
 [PowerShell Script] **ci.ps1**  
-Latest Version: v1.0.1  
-Last Updated at: 2020-03-27  
+Latest Version: v1.0.2  
+Last Updated at: 2020-03-31  
 
 1. 如果需要自定义请自行编辑并保存该脚本文件  
-2. 自行配置仓库自动部署的 Github Action 工作流  
+2. 自行配置仓库自动部署的 Github Action Workflow  
 3. 运行 `.\ci.ps1` 执行该脚本文件  
 4. 此脚本支持参数，参数会作为commit信息提交，比如 `.\ci.ps1 "这里是带空格 的 commit message"`  
 
@@ -38,6 +38,11 @@ hexo generate
 ```
 
 > 但仍然推荐使用 Github Action 来进行配置好后一劳永逸的全自动 编译 / 测试 / 部署 流程  
+
+### TIMELINE
+* 1.0.2 优化了传参方式 之前「附加消息」必须使用引号包含起来 否则只显示第一个空格前的词  
+Before `.\ci.ps1 我是猪 八戒 的大师兄孙悟空 的拜把兄弟平天大圣牛魔王 的弟弟如意真仙 要打胎吗` >> 你是猪  
+Now `.\ci.ps1 没 有 问 题 直 接 合 并` >> 没 问 题 就 是 没 问 题  
 
 ## Other
 如果 PowerShell 报错：  
