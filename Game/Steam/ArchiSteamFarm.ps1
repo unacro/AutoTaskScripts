@@ -1,12 +1,17 @@
 <##
  # Author: Cyanashi(imwhtl@gmail.com)
- # Version: 2.0.0
- # Last_Updated: 2020-04-01
+ # Version: 2.0.1
+ # Last_Updated: 2020-04-02
  # Description: ArchiSteamFarm ASF自动部署脚本
  #>
 
+$psVersion = ([String]$psversiontable.PSVersion).Substring(0, 3)
+if ([Double]$psVersion -lt 5) {
+    Write-Host "[Warn] PowerShell 版本过低（$($psVersion)），此脚本不支持 5.1 以下的版本。" -ForegroundColor Yellow
+    exit
+}
+
 $Script:Version = ""
-$debug = $false
 $got_zip = $false
 $got_exe = $false
 $desktop = [System.Environment]::GetFolderPath('Desktop')
@@ -50,9 +55,12 @@ function Copy-Files {
 }
 function Get-DownloadUrl {
     $response = Invoke-WebRequest -URI "https://api.github.com/repos/JustArchiNET/ArchiSteamFarm/releases/latest" -UseBasicParsing | Select-Object -ExpandProperty Content | ConvertFrom-Json
-    $response.assets | ForEach-Object {
-        if ($_.browser_download_url.Contains('win')) { return $_.browser_download_url }
+    if ($null -ne $response) {
+        $response.assets | ForEach-Object {
+            if ($_.browser_download_url.Contains('win')) { return $_.browser_download_url }
+        }
     }
+    else { return "" }
 }
 function Test-ZipFile {
     if (Test-Path $zipPath) { return $true }
@@ -75,13 +83,15 @@ function Get-ZipFile {
     $assetUrl = Get-DownloadUrl
     if ([String]::IsNullOrEmpty($assetUrl)) {
         Write-Host "[Error] 获取最新稳定版下载地址失败，请检查网络。或前往 https://github.com/JustArchiNET/ArchiSteamFarm/releases 手动下载正确版本（ASF-win-x64.zip）。" -ForegroundColor Red
-        return $false
+        $Script:nil = Read-Host "按下回车键继续"
+        if (-not (Test-ZipFile)) { return $false }
     }
     $Script:Version = (($assetUrl -split "download/")[1] -split "/ASF-win-x64.zip")[0]
     Write-Host "[Info] 开始下载 ArchiSteamFarm Version 最新稳定版 $($Script:Version) 压缩包 [ASF-win-x64.zip]..."
-    Invoke-WebRequest -URI $assetUrl -OutFile 'ASF-win-x64.temp'
+    if (Test-Path 'ASF-win-x64.tmp') { Remove-Item 'ASF-win-x64.tmp' }
+    Invoke-WebRequest -URI $assetUrl -OutFile 'ASF-win-x64.tmp'
     if (Test-Path $zipPath) { Remove-Item $zipPath }
-    Rename-Item "$($workspace)\ASF-win-x64.temp" $zipPath
+    Rename-Item "$($workspace)\ASF-win-x64.tmp" $zipPath
     if (Test-ZipFile) {
         Write-Host "[Info] ArchiSteamFarm v$($Script:Version) 下载完成，位于 $($zipPath) 。" -ForegroundColor Green
         return $true
@@ -89,7 +99,7 @@ function Get-ZipFile {
     else {
         Write-Host "[Error] ArchiSteamFarm v$($Script:Version) 下载失败，请重试。或者访问 $($assetUrl) 手动下载。" -ForegroundColor Red
         return $false
-    }   
+    }
 }
 function Expand-ZipFile {
     Write-Host "[Info] 开始解压 ArchiSteamFarm Version 压缩包 $($Script:Version) [ASF-win-x64.zip]..."
@@ -182,7 +192,6 @@ function Backup-Config {
     }
 }
 
-#$debug = $true
 Backup-Config
 Get-FileReady
 Write-Host "[Info] ArchiSteamFarm 主程序准备完成。" -ForegroundColor Cyan
