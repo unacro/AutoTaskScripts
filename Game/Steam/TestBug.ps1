@@ -8,7 +8,7 @@ function Get-False {
         Read-Host "What the FUCK is this"
     }
     else {
-        $Script:nil = Read-Host "Never mind. Whatever"
+        Read-Host "Never mind. Whatever" | Out-Null
     }
     $a_false = [Boolean]$false
     Write-Host "[Debug] 在 Get-False 函数里: 此时 $($a_false) 的类型还是 $($a_false.GetType().Name) 。" -ForegroundColor Yellow
@@ -31,3 +31,6 @@ else {
 if ($just_a_false) {
     Write-Host "[异常显示] 并且作为 $($just_a_false.GetType().Name) 类型的 $($just_a_false) 算是逻辑 1，可以进入 if 判断" -ForegroundColor Red
 }
+
+[Console]::Readkey() | Out-Null
+exit
