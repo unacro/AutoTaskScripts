@@ -158,8 +158,6 @@ function Import-Config {
     }
 }
 function New-Shortcut {
-    $shortcutPath
-    $shortcutTip
     $shortcutConfirm = Get-MsgBox -Title "准备创建快捷方式" -Prompt "是否在桌面创建快捷方式？`n若选择「否」，则会在「脚本所在目录」建立快捷方式。" -Buttons YesNoCancel -Icon Question
     if ($shortcutConfirm -eq 'Yes') {
         $shortcuts = "$($desktop)\ASF.lnk", "$($corePath)\ArchiSteamFarm.exe", "$($desktop)\ASF Config.lnk", "$($corePath)\config", "桌面"

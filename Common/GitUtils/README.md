@@ -16,8 +16,8 @@ hugo server
 
 ## GitUtils 自动部署脚本
 [PowerShell Script] **ci.ps1**  
-Latest Version: v1.0.2  
-Last Updated at: 2020-03-31  
+Latest Version: v1.0.3  
+Last Updated at: 2020-04-04  
 
 1. 如果需要自定义请自行编辑并保存该脚本文件  
 2. 自行配置仓库自动部署的 Github Action Workflow  
@@ -39,10 +39,16 @@ hexo generate
 
 > 但仍然推荐使用 Github Action 来进行配置好后一劳永逸的全自动 编译 / 测试 / 部署 流程  
 
-### TIMELINE
+### Warn
+由于用 PowerShell 传参时直接输入 `#` 开头的字符串**并不会**被认为是传入的参数 ~~会当成此行命令的注释忽略掉~~。  
+因此使用 `.\ci.ps1 fixed #1 bug` 这样的格式只能接收到 `#` 前的 `fixed`，`&`等特殊符号同理。  
+如果要在参数中使用类似的特殊符号，依旧需要将参数整体用引号括起来，类似 `.\ci.ps1 "fix #1 a fatal bug"` 或是 `.\ci.ps1 "add some features & some bugs"`。
+
+### Timeline
 * 1.0.2 优化了传参方式 之前「附加消息」必须使用引号包含起来 否则只显示第一个空格前的词  
-Before `.\ci.ps1 我是猪 八戒 的大师兄孙悟空 的拜把兄弟平天大圣牛魔王 的弟弟如意真仙 要打胎吗` >> 你是猪  
-Now `.\ci.ps1 没 有 问 题 直 接 合 并` >> 没 问 题 就 是 没 问 题  
+**Before** `.\ci.ps1 我是猪 八戒 的大师兄孙悟空 的拜把兄弟平天大圣牛魔王 的弟弟如意真仙 要打胎吗` >> 你是猪  
+**Now** `.\ci.ps1 没 有 问 题 直 接 合 并` >> 没 问 题 就 是 没 问 题  
+* 1.0.3 优化了上个版本有时候并没有正确取到对应参数的 bug  
 
 ## Other
 如果 PowerShell 报错：  

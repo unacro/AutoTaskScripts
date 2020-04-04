@@ -17,10 +17,16 @@
 #### [Win2Linux] Win同步文件到Linux
 利用cwRsync通过SSH连接同步文件到Linux，理论上是不用Linux那边装rsync服务端的。  
 
-#### [GitUtils] Git便捷脚本
+#### [GitUtils] Git相关脚本
 别名还是不够短。  
 
+#### [Acfun] AcFun相关脚本
+Vtuber数据获取。  
+
 ### Game 游戏脚本
+#### [Steam] Steam相关脚本
+ArchiSteamFarm快速部署。
+
 #### [Diablo3] 暗黑破坏神3按键脚本
 ![AutoHotkey各分支演进图](https://maul-esel.github.io/ahkbook/en/images/versions.png)
 当初一心想用L2版本写，到现在都没个准信……用L1重构了。  

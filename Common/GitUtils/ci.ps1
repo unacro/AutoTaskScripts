@@ -1,22 +1,29 @@
 <##
  # Author: Cyanashi(imwhtl@gmail.com)
- # Version: 1.0.2
- # Last_Updated: 2020-03-31
+ # Version: 1.0.3
+ # Last_Updated: 2020-04-04
  # Description: GitUtils 自动部署脚本
  #>
 
 $debug = $false
 $curtime = Get-Date
-if ([String]::IsNullOrEmpty($args[0])) {
+if ([String]::IsNullOrEmpty($args)) {
   $commitWithMessage = "Updated@$($curtime)"
 }
 else {
-  $extraMsg = [String]$args[0]
-  For ($i = 1; $i -lt $args.Count; $i++) {
-    $extraMsg += " $($args[$i])"
+  if ([String]::IsNullOrEmpty($args[0])) {
+    $extraMsg = [String]$args[0]
+  }
+  else {
+    $extraMsg = [String]$args[0]
+    For ($i = 1; $i -lt $args.Count; $i++) {
+      $extraMsg += " $($args[$i])"
+    }
   }
   $commitWithMessage = "Updated@$($curtime) $($extraMsg.Trim())"
 }
+Write-Output $commitWithMessage
+exit
 $script:workspace = Split-Path -Parent $MyInvocation.MyCommand.Definition
 $script:autoDelete = "" # 需要删除的文件夹写在这里即可 比如 \public
 $script:commandString = @"
