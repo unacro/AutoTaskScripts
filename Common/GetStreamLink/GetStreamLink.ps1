@@ -1,19 +1,23 @@
-<##
- # Author: Cyanashi(imwhtl@gmail.com)
- # Version: 1.1.0
- # Last_Updated: 2020-04-03
- # Description: Live Stream-link Source Parsing Tool 直播源获取工具
- #>
+$Workspace = Split-Path -Parent $MyInvocation.MyCommand.Definition
+Set-Location $Workspace
+$Version = "1.1.0"
+$Updated = "2020-04-06"
+$Source = "https://github.com/Cyanashi/AutoTaskScripts/tree/master/Common/GetStreamLink"
+
+#=================================================
+#   Author: Cyanashi
+#   Version: 1.1.0
+#   Updated: 2020-04-06
+#   Required: ^PowerShell 5.1
+#   Description: Live Stream-link Source Parsing Tool 直播源获取工具
+#   Link: https://ews.ink/develop/Get-Stream-Link
+#=================================================
 
 $Script:Args # 不必赋值[ = $args] $Script:Args 已经是参数了
 $Script:Config
 $Script:Input
 $Script:LiveInfo = @{ }
-$VERSION = "1.1.0"
-$UPDATED = "2020-04-04"
-$SOURCE = "https://github.com/Cyanashi/AutoTaskScripts/tree/master/Common/GetStreamLink"
-$WORKSPACE = Split-Path -Parent $MyInvocation.MyCommand.Definition
-Set-Location $WORKSPACE
+$Script:Stream = @{ }
 
 Add-Type -AssemblyName System.Windows.Forms
 function Get-MsgBox {
@@ -35,19 +39,19 @@ function Write-Log {
     $current = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
     $Content = $Content.Replace("`n", "`n                      ")
     $log = "[$($current)] $($Level.ToUpper()) | $($Content)"
-    if ($Level -eq "DEBUG") { Write-Host $log -BackgroundColor Black }
-    elseif ($Level -eq "INFO") { Write-Host $log -ForegroundColor White }
-    elseif ($Level -eq "WARN") { Write-Host $log -ForegroundColor Yellow }
-    elseif ($Level -eq "ERROR") { Write-Host $log -ForegroundColor Red }  
-    elseif ($Level -eq "FATAL") { Write-Host $log -BackgroundColor Re } 
+    if ($Level -eq "DEBUG") { Write-Host $log -ForegroundColor Black -BackgroundColor White }
     elseif ($Level -eq "NOTICE") { Write-Host $log -ForegroundColor Cyan }
+    elseif ($Level -eq "INFO") { Write-Host $log -ForegroundColor White }
     elseif ($Level -eq "SUCCESS") { Write-Host $log -ForegroundColor Green }
-    elseif ($Level -eq "DIVIDER") { Write-Host "****************************************************************************************************" -ForegroundColor Gray }
+    elseif ($Level -eq "WARN") { Write-Host $log -ForegroundColor Yellow }
+    elseif ($Level -eq "ERROR") { Write-Host $log -ForegroundColor Red }
+    elseif ($Level -eq "FATAL") { Write-Host $log -ForegroundColor White -BackgroundColor Red }
+    elseif ($Level -eq "DIVIDER") { Write-Host "====================================================================================================" -ForegroundColor Gray }
 }
 
 function Read-Config {
     Write-Log "正在读取配置文件"
-    $config_path = $WORKSPACE + "\config.json"
+    $config_path = $Workspace + "\config.json"
     if (Test-Path $config_path) {
         $config_string = Get-Content $config_path -Encoding UTF8
         # Win资源管理器菜单栏的路径默认为反斜杠\ 如果直接复制粘贴其实不是合法的JSON格式 此处进行输入容错
@@ -57,20 +61,11 @@ function Read-Config {
     }
     else {
         Write-Log "配置文件不存在 尝试初始化" WARN
-        # TODO meta_info 真的有必要加在配置文件里吗
-        $meta_info = @{
-            script_version = $VERSION;
-            script_updated = $UPDATED;
-            script_latest  = $SOURCE;
-            description    = "https://ews.ink/develop/Get-Stream-Link";
-        }
         $default_room = @{ url = ""; site = "douyu"; room_id = ""; }
         $config = @{
-            meta_info    = $meta_info;
-            never_closed = $true;
             player       = "D:/Program/PotPlayer/PotPlayerMini64.exe";
             default      = $default_room;
-            after_parse  = 0;
+            after_get    = 0;
         }
         $config | ConvertTo-Json | Out-File 'config.json' # 第一次启动生成默认配置文件
         $Script:Config = $config # 应用第一次生成的配置文件
@@ -248,10 +243,9 @@ function Initialize-Input {
     }
 }
 
-
 function Get-StreamLink {
-    if ($null -eq $Script:LiveInfo.Room -or $null -eq $Script:LiveInfo.Site) {
-        return $null
+    if ($null -eq $Script:LiveInfo.Room) {
+        return "没有设置直播间房间号"
     }
     $URI = @{
         Bilibili = "https://api.live.bilibili.com/xlive/web-room/v1/index/getRoomPlayInfo?room_id=$($Script:LiveInfo.Room)&play_url=1&mask=1&qn=0&platform=web";
@@ -259,19 +253,22 @@ function Get-StreamLink {
         Huya     = "https://m.huya.com/$($Script:LiveInfo.Room)";
         CC       = "https://vapi.cc.163.com/video_play_url/$($Script:LiveInfo.Room)?vbrname=blueray";
     }
-    $script:LIVE_STREAMER = $null
+    $script:Stream.Streamer = $Script:LiveInfo.Room
     if ($Script:LiveInfo.Site.ToLower() -eq "bilibili") {
         $response = Invoke-WebRequest -URI $URI.Bilibili -UseBasicParsing | Select-Object -ExpandProperty Content | ConvertFrom-Json
-        if ($response.data.live_status -eq 0) {
+        if ($response.message -ne 0) {
+            return $response.message
+        }
+        elseif ($response.data.live_status -eq 0) {
             return "B站直播间$($Script:LiveInfo.Room)没有开播"
         }
-        # 数据抓取成功 开始解析直播源...
         Write-Log "数据抓取成功 开始解析直播源..."
         $user_info_api = "http://api.bilibili.com/x/space/acc/info?mid=$($response.data.uid)&jsonp=jsonp"
         $streamer_info = Invoke-WebRequest -URI $user_info_api -UseBasicParsing | Select-Object -ExpandProperty Content | ConvertFrom-Json
-        $script:LIVE_STREAMER = $streamer_info.data.name
-        $temp_stream = "https://cn-hbxy-cmcc-live-01.live-play.acgvideo.com/live-bvc/live_" + ($response.data.play_url.durl[0].url -split "/live_")[1]
-        $stream_link = ($temp_stream -split ".flv?")[0].Replace("_1500", "_1500") + ".m3u8" # 经测试某些直播源删掉清晰度画面会损坏
+        $script:Stream.Streamer = $streamer_info.data.name
+        $temp_link = "https://cn-hbxy-cmcc-live-01.live-play.acgvideo.com/live-bvc/live_" + ($response.data.play_url.durl[0].url -split "/live_")[1]
+        $Script:Stream.Link = ($temp_link -split ".flv?")[0].Replace("_1500", "_1500") + ".m3u8" # 经测试某些直播源删掉清晰度画面会损坏
+        return $null
     }
     elseif ($Script:LiveInfo.Site.ToLower() -eq "cc") {
         $timestamp_hex = "{0:x}" -f [Int](([DateTime]::Now.ToUniversalTime().Ticks - 621355968000000000) / 10000000).tostring().Substring(0, 10)
@@ -297,8 +294,9 @@ function Get-StreamLink {
         }
         # 数据抓取成功 开始解析直播源...
         Write-Log "数据抓取成功 开始解析直播源..."
-        $script:LIVE_STREAMER = $Script:LiveInfo.Room #TODO 获取主播名字
-        $stream_link = $response.videourl
+        $script:Stream.Streamer = $Script:LiveInfo.Room #TODO 获取主播名字
+        $Script:Stream.Link = $response.videourl
+        return $null
     }
     elseif ($Script:LiveInfo.Site.ToLower() -eq "douyu") {
         $response = Invoke-WebRequest -URI $URI.Douyu -UseBasicParsing | Select-Object -ExpandProperty Content | ConvertFrom-Json
@@ -306,33 +304,85 @@ function Get-StreamLink {
             Write-Log "$($response.info)" DEBUG
             return "斗鱼直播间$($Script:LiveInfo.Room)没有开播"
         }
-        Write-Log "\u6570\u636e\u6293\u53d6\u6210\u529f \u5f00\u59cb\u89e3\u6790\u76f4\u64ad\u6e90..."
-        $script:LIVE_STREAMER = $response.Rendata.data.nickname
-        $temp_stream = "http://tx2play1.douyucdn.cn" + ($response.Rendata.link -split "douyucdn.cn")[1]
-        $stream_link = (($temp_stream -split ".flv?")[0] -split "_")[0] + "_4000p.m3u8" # 经测试某些直播源删掉清晰度之后无法播放因此统一加上4000p的清晰度后缀
+        Write-Log "数据抓取成功 开始解析直播源..."
+        $script:Stream.Streamer = $response.Rendata.data.nickname
+        $temp_link = "http://tx2play1.douyucdn.cn" + ($response.Rendata.link -split "douyucdn.cn")[1]
+        $Script:Stream.Link = (($temp_link -split ".flv?")[0] -split "_")[0] + "_4000p.m3u8" # 经测试某些直播源删掉清晰度之后无法播放 因此统一加上4000p的清晰度后缀
+        return $null
     }
     elseif ($Script:LiveInfo.Site.ToLower() -eq "huya") {
         $ContentType = "application/x-www-form-urlencoded"
         $UserAgent = "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Mobile Safari/537.36"
         $response = Invoke-WebRequest -URI $URI.Huya -UseBasicParsing -ContentType $ContentType -UserAgent $UserAgent | Select-Object -ExpandProperty Content
         # $stat_info = "{" + ((($response -split "STATINFO")[1] -split "{")[1] -split "};")[0] + "}"
-        # $temp_stream = [regex]::matches($response, "hasvedio: '(.*\.m3u8).*", "IgnoreCase")
+        # $temp_link = [regex]::matches($response, "hasvedio: '(.*\.m3u8).*", "IgnoreCase")
         $live_status = (($response -split "totalCount: '")[1] -split "',")[0]
         if ($live_status -eq "") {
             return "虎牙直播间$($Script:LiveInfo.Room)没有开播"
         }
         Write-Log "数据抓取成功 开始解析直播源..."
-        $script:LIVE_STREAMER = (($response -split "ANTHOR_NICK = '")[1] -split "';")[0]
-        $stream_link = "http://al.rtmp.huya.com/backsrc/" + ((($response -split "hasvedio: '")[1] -split "_")[0] -split "src/")[1] + ".m3u8"
+        $script:Stream.Streamer = (($response -split "ANTHOR_NICK = '")[1] -split "';")[0]
+        $Script:Stream.Link = "http://al.rtmp.huya.com/backsrc/" + ((($response -split "hasvedio: '")[1] -split "_")[0] -split "src/")[1] + ".m3u8"
+        return $null
     }
-    return $stream_link
+}
+
+function Select-StreamLink {
+    Set-Clipboard $Script:Stream.Link
+    # Write-Log "直播源解析成功 已复制到剪切板`n将以 $($Choose) 的方式处理直播源`n0弹窗询问 1直接播放 2生成asx文件 3直接退出" DEBUG
+    $Choose = $Script:Config.after_get
+    if ($Choose -eq 0) {
+        $thePrompt = @"
+成功从$($Script:Stream.Streamer)直播间（$($Script:LiveInfo.Site)/$($Script:LiveInfo.Room)）获取到直播源 $($Script:Stream.Link)
+直播源已经复制到剪切板，使用 Ctrl+V 粘贴。`n
+当前预设的播放器为 $($Script:Config.player)`n
+点击「是」直接使用本地播放器播放
+点击「否」生成.asx文件
+点击「取消」结束程序
+"@
+        $playConfirm = Get-MsgBox -Title "直播源获取成功" -Prompt $thePrompt -Buttons YesNoCancel -Icon Question
+        if ($playConfirm -eq 'Yes') {
+            $Choose = 1
+        }
+        elseif ($playConfirm -eq 'No') {
+            $Choose = 2
+        }
+        elseif ($playConfirm -eq 'Cancel') {
+            $Choose = 3
+        }
+    }
+    if ($Choose -eq 1) {
+        Write-Log "尝试启动本地播放器 $($Script:Config.player)"
+        Start-Process $Script:Config.player -Argumentlist $Script:Stream.Link
+    }
+    elseif ($Choose -eq 2) {
+        $asx_content = @"
+<asx version=`"3.0`">
+    <entry>
+        <title>[$($script:LiveInfo.Site)_$($script:LIVE_ROOM_ID)]$($script:Stream.Streamer)</title>
+        <ref href=`"" + $($Script:Stream.Link) + "`"/>
+    </entry>
+</asx>
+"@
+        $asx_path = "$($Workspace)\live"
+        if (!(Test-Path $asx_path)) {
+            New-Item -ItemType Directory -Force -Path $asx_path
+        }
+        $output_path = "$($asx_path)\$($Script:LiveInfo.Site)_$($script:LIVE_ROOM_ID).asx"
+        Write-Output $asx_content | Out-File -filepath $output_path
+        Write-Log "已生成asx文件 $($output_path)" SUCCESS
+    }
+    elseif ($Choose -eq 3) {
+        Write-Log "选择退出"
+    }
 }
 
 Write-Log -Level DIVIDER
 
-Write-Log "直播源解析工具 Live Stream-link Source Parsing Tool v$($VERSION)" NOTICE
-Write-Log "Cyanashi 最后更新于 $($UPDATED)" NOTICE
-Write-Log "最新源码 $($SOURCE)" NOTICE
+Write-Log "直播源解析工具 Live Stream-link Source Parsing Tool v$($Version)" NOTICE
+Write-Log "Cyanashi 最后更新于 $($Updated)" NOTICE
+Write-Log "最新源码 $($Source)" NOTICE
+Write-Log "开发日志 https://ews.ink/develop/Get-Stream-Link" NOTICE
 
 Write-Log -Level DIVIDER
 
@@ -362,58 +412,14 @@ if (-not (Initialize-Input)) {
 
 Write-Log -Level DIVIDER
 
-# TODO 获取直播源
-$ZBY = Get-StreamLink
-Write-Log "尝试获取直播源 $($ZBY)" DEBUG
-
-Write-Log -Level DIVIDER
-
-# TODO 处理直播源
-Set-Clipboard $stream_link
-Write-Log "直播源解析成功 已复制到剪切板`n以 $($Script:Config.after_parse) 的方式处理直播源`n0弹窗询问 1直接播放 2生成asx文件 3直接退出" DEBUG
-# 弹窗三个选项也是同理  是直接播放 否生成asx文件 取消直接退出
-$thePrompt = @"
-成功从$($streamer)直播间（$($INPUT_URL)）获取到直播源 $($stream_link)
-直播源已经复制到剪切板，使用 Ctrl+V 粘贴。`n
-当前预设的播放器为 $($script:PLAYER)
-是否使用本地播放器直接播放？`n
-点击「是」直接播放
-点击「否」生成.asx文件
-点击「取消」结束程序
-"@
-$playConfirm = Get-MsgBox -Title "直播源获取成功" -Prompt $thePrompt -Buttons YesNoCancel -Icon Question
-if ($playConfirm -eq 'Yes') {
-    Write-Log "尝试启动本地播放器 $($script:PLAYER)"
-    Start-Process $script:PLAYER -Argumentlist $stream_link
-    Write-Log "选择直接播放" DEBUG
+$res = Get-StreamLink
+if ($null -eq $res) {
+    Write-Log "获取直播源成功 $($Script:Stream.Link)" SUCCESS
+    Select-StreamLink
 }
-elseif ($playConfirm -eq 'No') {
-    Write-Log "尝试生成asx文件" DEBUG
-    if ($null -ne $script:LIVE_STREAMER) {
-        $room_name = $script:LIVE_STREAMER
-        $room_name += ConvertTo-ZhCN "\u7684\u76f4\u64ad\u95f4"
-    }
-    $asx_content = @"
-<asx version=`"3.0`">
-    <entry>
-        <title>[$($script:LIVE_SITE)_$($script:LIVE_ROOM_ID)]$($room_name)</title>
-        <ref href=`"" + $($stream_link) + "`"/>
-    </entry>
-</asx>
-"@
-    $live_path = "$($script:ROOT_PATH)\live"
-    if (!(Test-Path $live_path)) {
-        $nil = New-Item -ItemType Directory -Force -Path $live_path
-    }
-    $output_path = "$($live_path)\$($script:LIVE_SITE)_$($script:LIVE_ROOM_ID).asx"
-    Write-Output $asx_content | out-file -filepath $output_path
-    # 已生成asx文件
-    Write-Log "\u5df2\u751f\u6210asx\u6587\u4ef6 $($output_path)"
+else {
+    Write-Log "尝试获取直播源失败 $($res) $($Script:Stream.Link)" ERROR
 }
-elseif ($playConfirm -eq 'Cancel') {
-    Write-Log "选择退出" DEBUG
-}
-$Choose
 
 Write-Log -Level DIVIDER
 
