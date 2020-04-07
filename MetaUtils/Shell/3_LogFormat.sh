@@ -1,7 +1,10 @@
 log() {
     typeset -u level
     level="$2"
-    if [ $level == "INFO" ]; then
+    if [ $# == 1 ]; then
+        level="INFO"
+        prefix="\033[37m"
+    elif [ $level == "INFO" ]; then
         prefix="\033[37m"
     elif [ $level == "WARN" ]; then
         prefix="\033[1;33m"
@@ -20,6 +23,9 @@ log() {
     elif [ $level == "DIVIDER" ]; then
         echo "================================================================"
         return
+    else
+        level="INFO"
+        prefix="\033[37m"
     fi
     echo -e "$prefix[$(date +"%Y-%m-%d %H:%M:%S")] $level | $1\033[0m"
 }
