@@ -1,23 +1,24 @@
 $Workspace = Split-Path -Parent $MyInvocation.MyCommand.Definition
 Set-Location $Workspace
-$Version = "1.1.0"
-$Updated = "2020-04-06"
+$Version = "1.1.1"
+$Updated = "2020-04-20"
 $Source = "https://github.com/Cyanashi/AutoTaskScripts/tree/master/Common/GetStreamLink"
 
 #=================================================
 #   Author: Cyanashi
-#   Version: 1.1.0
-#   Updated: 2020-04-06
+#   Version: 1.1.1
+#   Updated: 2020-04-20
 #   Required: ^PowerShell 5.1
 #   Description: Live Stream-link Source Parsing Tool 直播源获取工具
 #   Link: https://ews.ink/develop/Get-Stream-Link
 #=================================================
 
 $Script:Args # 不必赋值[ = $args] $Script:Args 已经是参数了
-$Script:Config
-$Script:Input
+$Script:Config | Out-Null
+$Script:Input | Out-Null
 $Script:LiveInfo = @{ }
 $Script:Stream = @{ }
+$Script:AsxData = @{ }
 
 Add-Type -AssemblyName System.Windows.Forms
 function Get-MsgBox {
@@ -61,11 +62,13 @@ function Read-Config {
     }
     else {
         Write-Log "配置文件不存在 尝试初始化" WARN
-        $default_room = @{ url = ""; site = "douyu"; room_id = ""; }
+        $default_room = New-Object PSObject -Property @{ url = ""; site = "douyu"; room_id = ""; }
+        $asx_list = New-Object PSObject -Property @{}
         $config = @{
-            player       = "D:/Program/PotPlayer/PotPlayerMini64.exe";
-            default      = $default_room;
-            after_get    = 0;
+            after_get = 0;
+            asx_list  = $asx_list;
+            default   = $default_room;
+            player    = "D:/Program/PotPlayer/PotPlayerMini64.exe";
         }
         $config | ConvertTo-Json | Out-File 'config.json' # 第一次启动生成默认配置文件
         $Script:Config = $config # 应用第一次生成的配置文件
@@ -253,7 +256,7 @@ function Get-StreamLink {
         Huya     = "https://m.huya.com/$($Script:LiveInfo.Room)";
         CC       = "https://vapi.cc.163.com/video_play_url/$($Script:LiveInfo.Room)?vbrname=blueray";
     }
-    $script:Stream.Streamer = $Script:LiveInfo.Room
+    $Script:Stream.Streamer = $Script:LiveInfo.Room
     if ($Script:LiveInfo.Site.ToLower() -eq "bilibili") {
         $response = Invoke-WebRequest -URI $URI.Bilibili -UseBasicParsing | Select-Object -ExpandProperty Content | ConvertFrom-Json
         if ($response.message -ne 0) {
@@ -265,7 +268,7 @@ function Get-StreamLink {
         Write-Log "数据抓取成功 开始解析直播源..."
         $user_info_api = "http://api.bilibili.com/x/space/acc/info?mid=$($response.data.uid)&jsonp=jsonp"
         $streamer_info = Invoke-WebRequest -URI $user_info_api -UseBasicParsing | Select-Object -ExpandProperty Content | ConvertFrom-Json
-        $script:Stream.Streamer = $streamer_info.data.name
+        $Script:Stream.Streamer = $streamer_info.data.name
         $temp_link = "https://cn-hbxy-cmcc-live-01.live-play.acgvideo.com/live-bvc/live_" + ($response.data.play_url.durl[0].url -split "/live_")[1]
         $Script:Stream.Link = ($temp_link -split ".flv?")[0].Replace("_1500", "_1500") + ".m3u8" # 经测试某些直播源删掉清晰度画面会损坏
         return $null
@@ -294,7 +297,7 @@ function Get-StreamLink {
         }
         # 数据抓取成功 开始解析直播源...
         Write-Log "数据抓取成功 开始解析直播源..."
-        $script:Stream.Streamer = $Script:LiveInfo.Room #TODO 获取主播名字
+        $Script:Stream.Streamer = $Script:LiveInfo.Room #TODO 获取主播名字
         $Script:Stream.Link = $response.videourl
         return $null
     }
@@ -305,7 +308,7 @@ function Get-StreamLink {
             return "斗鱼直播间$($Script:LiveInfo.Room)没有开播"
         }
         Write-Log "数据抓取成功 开始解析直播源..."
-        $script:Stream.Streamer = $response.Rendata.data.nickname
+        $Script:Stream.Streamer = $response.Rendata.data.nickname
         $temp_link = "http://tx2play1.douyucdn.cn" + ($response.Rendata.link -split "douyucdn.cn")[1]
         $Script:Stream.Link = (($temp_link -split ".flv?")[0] -split "_")[0] + "_4000p.m3u8" # 经测试某些直播源删掉清晰度之后无法播放 因此统一加上4000p的清晰度后缀
         return $null
@@ -321,7 +324,7 @@ function Get-StreamLink {
             return "虎牙直播间$($Script:LiveInfo.Room)没有开播"
         }
         Write-Log "数据抓取成功 开始解析直播源..."
-        $script:Stream.Streamer = (($response -split "ANTHOR_NICK = '")[1] -split "';")[0]
+        $Script:Stream.Streamer = (($response -split "ANTHOR_NICK = '")[1] -split "';")[0]
         $Script:Stream.Link = "http://al.rtmp.huya.com/backsrc/" + ((($response -split "hasvedio: '")[1] -split "_")[0] -split "src/")[1] + ".m3u8"
         return $null
     }
@@ -359,8 +362,8 @@ function Select-StreamLink {
         $asx_content = @"
 <asx version=`"3.0`">
     <entry>
-        <title>[$($script:LiveInfo.Site)_$($script:LIVE_ROOM_ID)]$($script:Stream.Streamer)</title>
-        <ref href=`"" + $($Script:Stream.Link) + "`"/>
+        <title>[$($Script:LiveInfo.Site)_$($Script:LiveInfo.Room)]$($Script:Stream.Streamer)的直播间</title>
+        <ref href="$($Script:Stream.Link)" />
     </entry>
 </asx>
 "@
@@ -368,12 +371,52 @@ function Select-StreamLink {
         if (!(Test-Path $asx_path)) {
             New-Item -ItemType Directory -Force -Path $asx_path
         }
-        $output_path = "$($asx_path)\$($Script:LiveInfo.Site)_$($script:LIVE_ROOM_ID).asx"
+        $output_path = "$($asx_path)\$($Script:LiveInfo.Site)_$($Script:LiveInfo.Room).asx"
         Write-Output $asx_content | Out-File -filepath $output_path
         Write-Log "已生成asx文件 $($output_path)" SUCCESS
     }
     elseif ($Choose -eq 3) {
         Write-Log "选择退出"
+    }
+}
+
+function Get-AsxList {
+    if ($null -ne $Script:Config.asx_list -and ![String]::IsNullOrEmpty($Script:Config.asx_list.PSObject.ToString())) {
+        Write-Log "检测到配置文件中设置了自动获取的直播列表`n将直接按照 config.json 中 asx_list 项设置的列表生成asx文件`n如果需要禁用此功能请将配置文件中 asx_list 项{}中的内容删除" NOTICE
+        # Write-Log "list PSCustomObject 为 $($Script:Config.asx_list)" DEBUG
+        $asx_content = "<asx version=`"3.0`">`n"
+        foreach ($key in $Script:Config.asx_list.PSObject.Properties.Name) {
+            $Script:AsxData[$key] = $Script:Config.asx_list.$key
+            # Write-Log "$($key) = $($Script:AsxData[$key])" DEBUG
+            $Script:LiveInfo = $Script:AsxData[$key] | Get-LiveInfo
+            Write-Log "开始解析 $($key)($($Script:AsxData[$key]))..."
+            $res = Get-StreamLink
+            if ($null -eq $res) {
+                $asx_content += @"
+    <entry>
+        <title>[$($Script:LiveInfo.Site)_$($Script:LiveInfo.Room)]$($key)</title>
+        <ref href="$($Script:Stream.Link)" />
+    </entry>`n
+"@
+            }
+            else {
+                $asx_content += @"
+    <entry>
+        <title>[未开播][$($Script:LiveInfo.Site)_$($Script:LiveInfo.Room)]$($key)</title>
+        <ref href="$($Script:AsxData[$key])" />
+    </entry>`n
+"@
+            }
+        }
+        $asx_content += "</asx>"
+        $asx_path = "$($Workspace)\live"
+        if (!(Test-Path $asx_path)) {
+            New-Item -ItemType Directory -Force -Path $asx_path
+        }
+        $output_path = "$($asx_path)\直播列表.asx"
+        Write-Output $asx_content | Out-File -filepath $output_path
+        Write-Log "已生成asx列表 $($output_path)" SUCCESS
+        exit
     }
 }
 
@@ -397,6 +440,9 @@ else {
 Write-Log -Level DIVIDER
 
 Write-Log "当前版本仅支持 斗鱼 虎牙 B站 网易cc" NOTICE
+
+Get-AsxList
+
 if (-not (Initialize-Input)) {
     do {
         try {

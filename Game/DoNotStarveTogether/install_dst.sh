@@ -404,9 +404,11 @@ log "生成快捷方式（位于 $HOME/dst_server ）..." notice
 
 cat >$ConfigPath/$ClusterName/adminlist.txt <<EOF
 EOF
+ln -s $ConfigPath/$ClusterName $HOME/dst_server/config
 ln -s $ConfigPath/$ClusterName/cluster.ini $HOME/dst_server/cluster.ini
 ln -s $ConfigPath/$ClusterName/cluster_token.txt $HOME/dst_server/cluster_token.txt
 ln -s $ConfigPath/$ClusterName/adminlist.txt $HOME/dst_server/adminlist.txt
+ln -s $ServerPath/mods/dedicated_server_mods_setup.lua $HOME/dst_server/mods.lua
 if [ $install_mode != 3 ]; then
     ln -s $ConfigPath/$ClusterName/Master/server.ini $HOME/dst_server/master.ini
 fi

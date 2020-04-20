@@ -17,8 +17,6 @@ else {
   }
   $commitWithMessage = "Updated@$($curtime) $($extraMsg.Trim())"
 }
-Write-Output $commitWithMessage
-exit
 $script:workspace = Split-Path -Parent $MyInvocation.MyCommand.Definition
 $script:autoDelete = "" # 需要删除的文件夹写在这里即可 比如 \public
 $script:commandString = @"
