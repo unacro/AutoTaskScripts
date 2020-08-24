@@ -31,7 +31,7 @@ def read_config(config_path="./config.json"):
     try:
         with open(config_path, 'r', -1, 'utf-8') as f:
             config = json.load(f)
-        print_result("读取<" + config_path + ">成功!")
+        print_result(f"读取 {config_path} 成功!")
         return config
     except json.decoder.JSONDecodeError:
         print_result("校验 json 文件格式失败")
