@@ -129,6 +129,7 @@ dmypy.json
 .pyre/
 
 # Workspace
+.idea/
 _Workspace/
 config.json
 config.yaml

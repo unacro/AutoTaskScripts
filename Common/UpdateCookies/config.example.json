@@ -1,0 +1,4 @@
+{
+    "UPLOAD_API": "https://your.api.com/v1/update_cookies",
+    "UPLOAD_KEY": "your key or whatever"
+}

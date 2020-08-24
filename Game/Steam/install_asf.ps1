@@ -1,33 +1,33 @@
 <##
  # Author: Cyanashi(imwhtl@gmail.com)
- # Version: 2.0.2
- # Last_Updated: 2020-04-02
- # Description: ArchiSteamFarm ASF×Ô¶¯²¿Êğ½Å±¾
+ # Version: 2.0.3
+ # Last_Updated: 2020-06-26
+ # Description: ArchiSteamFarm ASFè‡ªåŠ¨éƒ¨ç½²è„šæœ¬ Windows Ver (Powered By PowerShell)
  #>
 
 $psVersion = ([String]$psversiontable.PSVersion).Substring(0, 3)
 if ([Double]$psVersion -lt 5) {
-    Write-Host "[Warn] PowerShell °æ±¾¹ıµÍ£¨$($psVersion)£©£¬´Ë½Å±¾²»Ö§³Ö 5.1 ÒÔÏÂµÄ°æ±¾¡£" -ForegroundColor Yellow
+    Write-Host "[Warn] PowerShell ç‰ˆæœ¬è¿‡ä½ï¼ˆ$($psVersion)ï¼‰ï¼Œæ­¤è„šæœ¬ä¸æ”¯æŒ 5.1 ä»¥ä¸‹çš„ç‰ˆæœ¬ã€‚" -ForegroundColor Yellow
     exit
 }
 
-$Script:Version = "2.0.2"
-$Script:Updated = "2020-04-02"
+$Script:Version = "2.0.3"
+$Script:Updated = "2020-06-26"
 $Script:ASFVersion = ""
 $got_zip = $false
 $got_exe = $false
 $desktop = [System.Environment]::GetFolderPath('Desktop')
 $workspace = Split-Path -Parent $MyInvocation.MyCommand.Definition
 $zipPath = $workspace + '\ASF-win-x64.zip'
-$corePath = $workspace + '\core'
+$corePath = $workspace + '\Core'
 $7zPath = $env:ProgramFiles + '\7-Zip\7z.exe'
 Set-Location $workspace
 Add-Type -AssemblyName System.Windows.Forms
 function Get-MsgBox {
     param (
-        [String]$Prompt = "Ä¬ÈÏÄÚÈİ",
+        [String]$Prompt = "é»˜è®¤å†…å®¹",
         [System.Windows.Forms.MessageBoxButtons]$Buttons = [System.Windows.Forms.MessageBoxButtons]::OK,
-        [String]$Title = "Ä¬ÈÏ±êÌâ",
+        [String]$Title = "é»˜è®¤æ ‡é¢˜",
         [System.Windows.Forms.MessageBoxIcon]$Icon = [System.Windows.Forms.MessageBoxIcon]::None
     )
     return [System.Windows.Forms.MessageBox]::Show($Prompt, $Title, $Buttons, $Icon)
@@ -42,16 +42,16 @@ function Copy-Files {
     $files = Get-ChildItem $origin_folder -Recurse
     foreach ($item in $files) {
         if ($item.fullname -like "*appsettings.json*") { continue }
-        $new_item = $item.fullname.Replace($origin_folder, $new_folder) # È¡ÍêÕûÂ·¾¶
-        # Èç¹ûÄ¿±êÎÄ¼ş´æÔÚÔòÏÈÅĞ¶ÏĞÂ¾É
+        $new_item = $item.fullname.Replace($origin_folder, $new_folder) # å–å®Œæ•´è·¯å¾„
+        # å¦‚æœç›®æ ‡æ–‡ä»¶å­˜åœ¨åˆ™å…ˆåˆ¤æ–­æ–°æ—§
         if (Test-Path $new_item) {
-            # Èç¹ûÊÇÄ¿Â¼ÔòÌø¹ı Èç¹û²»Ìø¹ı Ôò»á´´½¨Ò»¼¶¿ÕÄ¿Â¼
+            # å¦‚æœæ˜¯ç›®å½•åˆ™è·³è¿‡ å¦‚æœä¸è·³è¿‡ åˆ™ä¼šåˆ›å»ºä¸€çº§ç©ºç›®å½•
             if (-not ((Get-ChildItem $new_item).PSIsContainer)) {
-                # Èç¹ûÄ¿±êÎ»ÖÃ´æÔÚ [ĞŞ¸ÄÊ±¼äÔçÓÚÔ´ÎÄ¼şµÄ] ÎÄ¼ş ÔòÖØĞÂ¿½±´²¢¸²¸Ç
+                # å¦‚æœç›®æ ‡ä½ç½®å­˜åœ¨ [ä¿®æ”¹æ—¶é—´æ—©äºæºæ–‡ä»¶çš„] æ–‡ä»¶ åˆ™é‡æ–°æ‹·è´å¹¶è¦†ç›–
                 if ($force -or (Get-ChildItem $new_item).lastwritetime -lt $item.lastwritetime) { Copy-Item $item.fullname $new_item -Force }
             }
         }
-        # Èç¹ûÄ¿±êÎÄ¼ş²»´æÔÚÖ±½Ó¿½±´
+        # å¦‚æœç›®æ ‡æ–‡ä»¶ä¸å­˜åœ¨ç›´æ¥æ‹·è´
         Else { Copy-Item $item.fullname $new_item }
     }
 }
@@ -79,40 +79,41 @@ function Test-ASF {
 }
 function Get-ZipFile {
     if (Test-ZipFile) {
-        $downloadConfirm = Get-MsgBox -Title "Ñ¹Ëõ°üÒÑ´æÔÚ" -Prompt "¼ì²âµ½µ±Ç°Ä¿Â¼ÏÂÒÑ´æÔÚ ASF-win-x64.zip ÎÄ¼ş£¬ÊÇ·ñÖØĞÂÏÂÔØ£¿" -Buttons YesNo  -Icon Warning
+        $downloadConfirm = Get-MsgBox -Title "å‹ç¼©åŒ…å·²å­˜åœ¨" -Prompt "æ£€æµ‹åˆ°å½“å‰ç›®å½•ä¸‹å·²å­˜åœ¨ ASF-win-x64.zip æ–‡ä»¶ï¼Œæ˜¯å¦é‡æ–°ä¸‹è½½ï¼Ÿ" -Buttons YesNo  -Icon Warning
         if ($downloadConfirm -eq 'No') { return $true }
     }
     $assetUrl = Get-DownloadUrl
     if ([String]::IsNullOrEmpty($assetUrl)) {
-        Write-Host "[Error] »ñÈ¡×îĞÂÎÈ¶¨°æÏÂÔØµØÖ·Ê§°Ü£¬Çë¼ì²éÍøÂç¡£»òÇ°Íù https://github.com/JustArchiNET/ArchiSteamFarm/releases ÊÖ¶¯ÏÂÔØÕıÈ·°æ±¾£¨ASF-win-x64.zip£©¡£" -ForegroundColor Red
-        Read-Host "°´ÏÂ»Ø³µ¼ü¼ÌĞø" | Out-Null
+        Write-Host "[Error] è·å–æœ€æ–°ç¨³å®šç‰ˆä¸‹è½½åœ°å€å¤±è´¥ï¼Œè¯·æ£€æŸ¥ç½‘ç»œã€‚æˆ–å‰å¾€ https://github.com/JustArchiNET/ArchiSteamFarm/releases æ‰‹åŠ¨ä¸‹è½½æ­£ç¡®ç‰ˆæœ¬ï¼ˆASF-win-x64.zipï¼‰ã€‚" -ForegroundColor Red
+        Read-Host "æŒ‰ä¸‹å›è½¦é”®ç»§ç»­" | Out-Null
         if (-not (Test-ZipFile)) { return $false }
     }
     $Script:ASFVersion = (($assetUrl -split "download/")[1] -split "/ASF-win-x64.zip")[0]
-    Write-Host "[Info] ¿ªÊ¼ÏÂÔØ ArchiSteamFarm Version ×îĞÂÎÈ¶¨°æ $($Script:ASFVersion) Ñ¹Ëõ°ü [ASF-win-x64.zip]..."
-    if (Test-Path 'ASF-win-x64.tmp') { Remove-Item 'ASF-win-x64.tmp' }
-    Invoke-WebRequest -URI $assetUrl -OutFile 'ASF-win-x64.tmp'
+    Write-Host "[Info] å¼€å§‹ä¸‹è½½ ArchiSteamFarm Version æœ€æ–°ç¨³å®šç‰ˆ $($Script:ASFVersion) å‹ç¼©åŒ… [ASF-win-x64.zip]..."
+    Write-Host "[Info] å¦‚æœç”±äºç½‘ç»œé—®é¢˜ï¼Œä¸‹è½½å¤±è´¥æˆ–ç”¨æ—¶è¿‡é•¿ï¼Œè¯·è‡ªè¡Œå‰å¾€ https://github.com/JustArchiNET/ArchiSteamFarm/releases æ‰‹åŠ¨ä¸‹è½½æ­£ç¡®ç‰ˆæœ¬ï¼ˆASF-win-x64.zipï¼‰ã€‚"
+    if (Test-Path 'ASF-win-x64-downloading.tmp') { Remove-Item 'ASF-win-x64-downloading.tmp' }
+    Invoke-WebRequest -URI $assetUrl -OutFile 'ASF-win-x64-downloading.tmp'
     if (Test-Path $zipPath) { Remove-Item $zipPath }
-    Rename-Item "$($workspace)\ASF-win-x64.tmp" $zipPath
+    Rename-Item "$($workspace)\ASF-win-x64-downloading.tmp" $zipPath
     if (Test-ZipFile) {
-        Write-Host "[Info] ArchiSteamFarm v$($Script:ASFVersion) ÏÂÔØÍê³É£¬Î»ÓÚ $($zipPath) ¡£" -ForegroundColor Green
+        Write-Host "[Info] ArchiSteamFarm v$($Script:ASFVersion) ä¸‹è½½å®Œæˆï¼Œä½äº $($zipPath) ã€‚" -ForegroundColor Green
         return $true
     }
     else {
-        Write-Host "[Error] ArchiSteamFarm v$($Script:ASFVersion) ÏÂÔØÊ§°Ü£¬ÇëÖØÊÔ¡£»òÕß·ÃÎÊ $($assetUrl) ÊÖ¶¯ÏÂÔØ¡£" -ForegroundColor Red
+        Write-Host "[Error] ArchiSteamFarm v$($Script:ASFVersion) ä¸‹è½½å¤±è´¥ï¼Œè¯·é‡è¯•ã€‚æˆ–è€…è®¿é—® $($assetUrl) æ‰‹åŠ¨ä¸‹è½½ã€‚" -ForegroundColor Red
         return $false
     }
 }
 function Expand-ZipFile {
-    Write-Host "[Info] ¿ªÊ¼½âÑ¹ ArchiSteamFarm Version Ñ¹Ëõ°ü $($Script:ASFVersion) [ASF-win-x64.zip]..."
+    Write-Host "[Info] å¼€å§‹è§£å‹ ArchiSteamFarm Version å‹ç¼©åŒ… $($Script:ASFVersion) [ASF-win-x64.zip]..."
     if (Test-Path $7zPath) {
         Set-Alias sz $7zPath
         sz x "$zipPath" -y -o"$corePath"
-        Write-Host "[Info] [ASF-win-x64.zip] ½âÑ¹³É¹¦£¬½âÑ¹ºóÎÄ¼şÎ»ÓÚ $corePath ¡£" -ForegroundColor Green
+        Write-Host "[Info] [ASF-win-x64.zip] è§£å‹æˆåŠŸï¼Œè§£å‹åæ–‡ä»¶ä½äº $corePath ã€‚" -ForegroundColor Green
         return $true
     }
     else {
-        Write-Host "[Warn] Î´ÔÚÄ¬ÈÏÄ¿Â¼ $7zPath ÕÒµ½ 7-Zip ³ÌĞò¡£`n       ÇëÖ¸¶¨ 7-Zip Ö÷³ÌĞò£¨\7-Zip\7z.exe£©Â·¾¶£¬»òÊÖ¶¯½âÑ¹ $zipPath ¡£" -ForegroundColor Yellow
+        Write-Host "[Warn] æœªåœ¨é»˜è®¤ç›®å½• $7zPath æ‰¾åˆ° 7-Zip ç¨‹åºã€‚`n       è¯·æŒ‡å®š 7-Zip ä¸»ç¨‹åºï¼ˆ\7-Zip\7z.exeï¼‰è·¯å¾„ï¼Œæˆ–æ‰‹åŠ¨è§£å‹ $zipPath ã€‚" -ForegroundColor Yellow
         return $false
     }
 }
@@ -128,14 +129,14 @@ function Get-FileReady {
                         $got_exe = $true
                         if (Test-ASF) { return }
                         else {
-                            Write-Host "[Fatal] Ã»ÓĞÔÚ $($workspace)\core ÕÒµ½ ArchiSteamFarm Ö÷³ÌĞò£¬Èç¹ûÒ»Ö±³öÏÖÕâ¸ö´íÎó£¬Çë±¸·İºÃÅäÖÃÎÄ¼ş²¢É¾³ı .\core ÎÄ¼ş¼ĞºóÖØÊÔ¡£" -BackgroundColor Red
+                            Write-Host "[Fatal] æ²¡æœ‰åœ¨ $($workspace)\Core æ‰¾åˆ° ArchiSteamFarm ä¸»ç¨‹åºï¼Œå¦‚æœä¸€ç›´å‡ºç°è¿™ä¸ªé”™è¯¯ï¼Œè¯·å¤‡ä»½å¥½é…ç½®æ–‡ä»¶å¹¶åˆ é™¤ .\Core æ–‡ä»¶å¤¹åé‡è¯•ã€‚" -BackgroundColor Red
                             exit
                         }
                     }
                     else {
                         if (Test-ASF) { return }
                         else {
-                            $7zPath = Read-Host "ÊäÈë 7-Zip Ö÷³ÌĞòÂ·¾¶"
+                            $7zPath = Read-Host "è¾“å…¥ 7-Zip ä¸»ç¨‹åºè·¯å¾„"
                             Write-Host $7zPath
                             if (-not $7zPath.ToLower().EndsWith('.exe')) { $7zPath = $7zPath.TrimEnd('\/') + "\7z.exe" }
                         }
@@ -147,28 +148,26 @@ function Get-FileReady {
 }
 function Import-Config {
     if (Test-Path "$($workspace)\config") {
-        $importConfirm = Get-MsgBox -Title "×¼±¸µ¼ÈëÅäÖÃÎÄ¼ş" -Prompt "Èç¹ûµ¼Èë¹ı³ÌÖĞ·¢ÏÖ³åÍ»µÄÎÄ¼ş£¬ÊÇ·ñÇ¿ÖÆ¸²¸Ç£¿`nÈôÑ¡Ôñ¡¸·ñ¡¹£¬Ôò»á±£Áô¶şÕßÖĞ½ÏĞÂµÄ²¿·Ö¡£" -Buttons YesNoCancel -Icon Question
-        if ($importConfirm -eq 'Cancel') { Write-Host "[Info] È¡ÏûÓ¦ÓÃÅäÖÃÎÄ¼ş¡£" }
+        $importConfirm = Get-MsgBox -Title "å‡†å¤‡å¯¼å…¥é…ç½®æ–‡ä»¶" -Prompt "å¦‚æœå¯¼å…¥è¿‡ç¨‹ä¸­å‘ç°å†²çªçš„æ–‡ä»¶ï¼Œæ˜¯å¦å¼ºåˆ¶è¦†ç›–ï¼Ÿ`nè‹¥é€‰æ‹©ã€Œå¦ã€ï¼Œåˆ™ä¼šä¿ç•™äºŒè€…ä¸­è¾ƒæ–°çš„éƒ¨åˆ†ã€‚" -Buttons YesNoCancel -Icon Question
+        if ($importConfirm -eq 'Cancel') { Write-Host "[Info] å–æ¶ˆåº”ç”¨é…ç½®æ–‡ä»¶ã€‚" }
         else {
             # Write-Host "$($workspace)\config >> $($corePath)\config" -ForegroundColor Yellow
             if ($importConfirm -eq 'Yes') { Copy-Files "$($workspace)\config" "$($corePath)\config" -Force }
             elseif ($importConfirm -eq 'No') { Copy-Files "$($workspace)\config" "$($corePath)\config" }
-            Write-Host "[Info] ÒÑÓ¦ÓÃÅäÖÃÎÄ¼ş¡£" -ForegroundColor Green
+            Write-Host "[Info] å·²åº”ç”¨é…ç½®æ–‡ä»¶ã€‚" -ForegroundColor Green
         }
     }
 }
 function New-Shortcut {
-    $shortcutPath
-    $shortcutTip
-    $shortcutConfirm = Get-MsgBox -Title "×¼±¸´´½¨¿ì½İ·½Ê½" -Prompt "ÊÇ·ñÔÚ×ÀÃæ´´½¨¿ì½İ·½Ê½£¿`nÈôÑ¡Ôñ¡¸·ñ¡¹£¬Ôò»áÔÚ¡¸½Å±¾ËùÔÚÄ¿Â¼¡¹½¨Á¢¿ì½İ·½Ê½¡£" -Buttons YesNoCancel -Icon Question
+    $shortcutConfirm = Get-MsgBox -Title "å‡†å¤‡åˆ›å»ºå¿«æ·æ–¹å¼" -Prompt "æ˜¯å¦åœ¨æ¡Œé¢åˆ›å»ºå¿«æ·æ–¹å¼ï¼Ÿ`nè‹¥é€‰æ‹©ã€Œå¦ã€ï¼Œåˆ™ä¼šåœ¨ã€Œè„šæœ¬æ‰€åœ¨ç›®å½•ã€å»ºç«‹å¿«æ·æ–¹å¼ã€‚" -Buttons YesNoCancel -Icon Question
     if ($shortcutConfirm -eq 'Yes') {
-        $shortcuts = "$($desktop)\ASF.lnk", "$($corePath)\ArchiSteamFarm.exe", "$($desktop)\ASF Config.lnk", "$($corePath)\config", "×ÀÃæ"
+        $shortcuts = "$($desktop)\ASF.lnk", "$($corePath)\ArchiSteamFarm.exe", "$($desktop)\ASF Config.lnk", "$($corePath)\config", "æ¡Œé¢"
     }
     elseif ($shortcutConfirm -eq 'No') {
-        $shortcuts = "$($workspace)\ASF.lnk", "$($corePath)\ArchiSteamFarm.exe", "$($workspace)\ASF Config.lnk", "$($corePath)\config", "´Ë½Å±¾Í¬¼¶Ä¿Â¼ÏÂ"
+        $shortcuts = "$($workspace)\ASF.lnk", "$($corePath)\ArchiSteamFarm.exe", "$($workspace)\ASF Config.lnk", "$($corePath)\config", "æ­¤è„šæœ¬åŒçº§ç›®å½•ä¸‹"
     }
     elseif ($shortcutConfirm -eq 'Cancel') {
-        Write-Host "[Info] È¡Ïû´´½¨Ïà¹Ø¿ì½İ·½Ê½¡£"
+        Write-Host "[Info] å–æ¶ˆåˆ›å»ºç›¸å…³å¿«æ·æ–¹å¼ã€‚"
         return
     }
     $shell = New-Object -ComObject WScript.Shell
@@ -178,28 +177,28 @@ function New-Shortcut {
         $lnk.TargetPath = $shortcuts[$i++]
         $lnk.Save()
     }
-    Write-Host "[Info] Ïà¹Ø¿ì½İ·½Ê½ÒÑ½¨Á¢£¬Î»ÓÚ$($shortcuts[4])¡£" -ForegroundColor Green
+    Write-Host "[Info] ç›¸å…³å¿«æ·æ–¹å¼å·²å»ºç«‹ï¼Œä½äº$($shortcuts[4])ã€‚" -ForegroundColor Green
 }
 function Exit-WithAnyKey {
-    Write-Host "[Info] ËùÓĞÈÎÎñÒÑÍê³É£¬°´ÈÎÒâ¼ü¹Ø±Õ´°¿Ú¡£"
+    Write-Host "[Info] æ‰€æœ‰ä»»åŠ¡å·²å®Œæˆï¼ŒæŒ‰ä»»æ„é”®å…³é—­çª—å£ã€‚"
     [Console]::Readkey() | Out-Null
     exit
 }
 function Backup-Config {
     if (Test-ASF) {
-        $backupConfirm = Get-MsgBox -Title "±¸·İÅäÖÃÎÄ¼ş" -Prompt "ÊÇ·ñ±¸·İµ±Ç°ÅäÖÃÎÄ¼ş£¿" -Buttons YesNo  -Icon Warning
+        $backupConfirm = Get-MsgBox -Title "å¤‡ä»½é…ç½®æ–‡ä»¶" -Prompt "æ˜¯å¦å¤‡ä»½å½“å‰é…ç½®æ–‡ä»¶ï¼Ÿ" -Buttons YesNo  -Icon Warning
         if ($backupConfirm -eq 'Yes') {
             if (-not (Test-Path "$($workspace)\backup")) { New-Item -ItemType Directory "$($workspace)\backup" }
             $current = Get-Date -Format 'yyyyMMdd_HHmmss'
-            Compress-Archive -Path "$($corePath)\config" -DestinationPath "$($workspace)\backup\config_ÅäÖÃ±¸·İ_$($current)" -Force
+            Compress-Archive -Path "$($corePath)\config" -DestinationPath "$($workspace)\backup\config_é…ç½®å¤‡ä»½_$($current)" -Force
         }
     }
 }
 
-Write-Host "[Info] ½Å±¾µ±Ç°°æ±¾v$($Script:Version) $($Script:Updated)" -ForegroundColor Cyan
+Write-Host "[Info] è„šæœ¬å½“å‰ç‰ˆæœ¬v$($Script:Version) $($Script:Updated)" -ForegroundColor Cyan
 Backup-Config
 Get-FileReady
-Write-Host "[Info] ArchiSteamFarm Ö÷³ÌĞò×¼±¸Íê³É¡£" -ForegroundColor Cyan
+Write-Host "[Info] ArchiSteamFarm ä¸»ç¨‹åºå‡†å¤‡å®Œæˆã€‚" -ForegroundColor Cyan
 Import-Config
 Start-Sleep -Milliseconds 500
 New-Shortcut

@@ -3,7 +3,7 @@
 function Get-False {
     # 所以我两个月前写都知道随便起个 $nil 变量来用来捕获输入并置空
     # 今天为什么就忘了 浪费了一晚上的时间
-    $debug = 0
+    $debug = 1
     if ($debug) {
         Read-Host "What the FUCK is this"
     }

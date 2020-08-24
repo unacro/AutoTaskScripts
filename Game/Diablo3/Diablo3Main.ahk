@@ -1,6 +1,6 @@
 /**
- * Author: Cyanashi(imwhtl@gmail.com)
- * Version: 1.1.1
+ * Author: Sumi(imwhtl@gmail.com)
+ * Version: 1.2.0
  * Description: Main 主要业务逻辑
  */
 
@@ -21,6 +21,7 @@ WinGetPos, , , D3_Width, D3_Height, ahk_class D3 Main Window Class
 
 global MoveStatus := false ; 自动行走 true/false 开启/关闭
 global FireStatus := false ; 自动开火输出 true/false 开启/关闭
+global EnableSpecialFireMode := false ; 启用自动开火特别模式 true/false 是/否
 global MapStatus := false ; 小地图状态 true/false 开启/关闭
 global RMButtonStatus := false ; 鼠标右键状态 true/false 按下/弹起
 
@@ -44,12 +45,18 @@ global KeyClear := APP.KEY_CLEAR ; [关闭所有打开的窗口] 键位
 global KeyDebug := APP.KEY_DEBUG ; [显示调试信息] 键位
 
 global FireMode := 1 ; 自动开火模式
-global DelaySkill1 := APP.FIRE_MODE_DELAY[FireMode][1]
-global DelaySkill2 := APP.FIRE_MODE_DELAY[FireMode][2]
-global DelaySkill3 := APP.FIRE_MODE_DELAY[FireMode][3]
-global DelaySkill4 := APP.FIRE_MODE_DELAY[FireMode][4]
-global DelayLMButton := APP.FIRE_MODE_DELAY[FireMode][5]
-global DelayRMButton := APP.FIRE_MODE_DELAY[FireMode][6]
+global NormalDelaySkill1 := APP.FIRE_MODE_DELAY[FireMode][1]
+global NormalDelaySkill2 := APP.FIRE_MODE_DELAY[FireMode][2]
+global NormalDelaySkill3 := APP.FIRE_MODE_DELAY[FireMode][3]
+global NormalDelaySkill4 := APP.FIRE_MODE_DELAY[FireMode][4]
+global NormalDelayLMButton := APP.FIRE_MODE_DELAY[FireMode][5]
+global NormalDelayRMButton := APP.FIRE_MODE_DELAY[FireMode][6]
+global SpecialDelaySkill1 := APP.FIRE_SP_MODE_DELAY[FireMode][1]
+global SpecialDelaySkill2 := APP.FIRE_SP_MODE_DELAY[FireMode][2]
+global SpecialDelaySkill3 := APP.FIRE_SP_MODE_DELAY[FireMode][3]
+global SpecialDelaySkill4 := APP.FIRE_SP_MODE_DELAY[FireMode][4]
+global SpecialDelayLMButton := APP.FIRE_SP_MODE_DELAY[FireMode][5]
+global SpecialDelayRMButton := APP.FIRE_SP_MODE_DELAY[FireMode][6]
 
 global AvailableHundredParagon := Ceil((APP.PARAGON+100-700) / 100) ; 有多少个可用的100巅峰(按住Ctrl) 向上取整
 global ParagonResetX := transX(960)
@@ -109,32 +116,32 @@ Loop, Parse, KeyHearthstone, |
 Loop, Parse, KeySwitchParagonMain, |
 {
     OneKey :=  Trim(A_LoopField, "{}")
-    Hotkey, ~%OneKey%, SwitchParagonMain
+    Hotkey, %OneKey%, SwitchParagonMain
 }
 Loop, Parse, KeySwitchParagonHealth, |
 {
     OneKey :=  Trim(A_LoopField, "{}")
-    Hotkey, ~%OneKey%, SwitchParagonHealth
+    Hotkey, %OneKey%, SwitchParagonHealth
 }
 Loop, Parse, KeyQuickConfim, |
 {
     OneKey :=  Trim(A_LoopField, "{}")
-    Hotkey, ~%OneKey%, QuickConfim
+    Hotkey, %OneKey%, QuickConfim
 }
 Loop, Parse, KeyQuickEnchant, |
 {
     OneKey :=  Trim(A_LoopField, "{}")
-    Hotkey, ~%OneKey%, QuickEnchant
+    Hotkey, %OneKey%, QuickEnchant
 }
 Loop, Parse, KeyAutoFixAndBreak, |
 {
     OneKey :=  Trim(A_LoopField, "{}")
-    Hotkey, ~%OneKey%, AutoFixAndBreak
+    Hotkey, %OneKey%, AutoFixAndBreak
 }
 Loop, Parse, KeyAutoCastBloodShard, |
 {
     OneKey :=  Trim(A_LoopField, "{}")
-    Hotkey, ~%OneKey%, AutoCastBloodShard
+    Hotkey, %OneKey%, AutoCastBloodShard
 }
 Loop, Parse, KeyClear, |
 {
@@ -244,12 +251,12 @@ transY(y) {
 }
 
 initSkillDelay() {
-    DelaySkill1 := APP.FIRE_MODE_DELAY[FireMode][1]
-    DelaySkill2 := APP.FIRE_MODE_DELAY[FireMode][2]
-    DelaySkill3 := APP.FIRE_MODE_DELAY[FireMode][3]
-    DelaySkill4 := APP.FIRE_MODE_DELAY[FireMode][4]
-    DelayLMButton := APP.FIRE_MODE_DELAY[FireMode][5]
-    DelayRMButton := APP.FIRE_MODE_DELAY[FireMode][6]
+    NormalDelaySkill1 := APP.FIRE_MODE_DELAY[FireMode][1]
+    NormalDelaySkill2 := APP.FIRE_MODE_DELAY[FireMode][2]
+    NormalDelaySkill3 := APP.FIRE_MODE_DELAY[FireMode][3]
+    NormalDelaySkill4 := APP.FIRE_MODE_DELAY[FireMode][4]
+    NormalDelayLMButton := APP.FIRE_MODE_DELAY[FireMode][5]
+    NormalDelayRMButton := APP.FIRE_MODE_DELAY[FireMode][6]
 }
 
 stopAutoMode() {
@@ -282,38 +289,71 @@ execAutoMove() {
 
 execAutoFire() {
     if (FireStatus) {
-        Gosub, StartPressSkill
+        Gosub, StartPressSkill ; 执行按下不放的按键
         SetTimer, UseClear, 150
         ; MsgBox % "开火"
-        if (DelaySkill1 > 0) {
-            SetTimer, UseSkill1, %DelaySkill1%
+        if (EnableSpecialFireMode) {
+            if (SpecialDelaySkill1 > 0) {
+                SetTimer, UseSkill1, %SpecialDelaySkill1%
+            } else {
+                SetTimer, UseSkill1, off
+            }
+            if (SpecialDelaySkill2 > 0) {
+                SetTimer, UseSkill2, %SpecialDelaySkill2%
+            } else {
+                SetTimer, UseSkill2, off
+            }
+            if (SpecialDelaySkill3 > 0) {
+                SetTimer, UseSkill3, %SpecialDelaySkill3%
+            } else {
+                SetTimer, UseSkill3, off
+            }
+            if (SpecialDelaySkill4 > 0) {
+                SetTimer, UseSkill4, %SpecialDelaySkill4%
+            } else {
+                SetTimer, UseSkill4, off
+            }
+            if (SpecialDelayLMButton > 0) {
+                SetTimer, UseLMButton, %SpecialDelayLMButton%
+            } else {
+                SetTimer, UseLMButton, off
+            }
+            if (SpecialDelayRMButton > 0) {
+                SetTimer, UseRMButton, %SpecialDelayRMButton%
+            } else {
+                SetTimer, UseRMButton, off
+            }
         } else {
-            SetTimer, UseSkill1, off
-        }
-        if (DelaySkill2 > 0) {
-            SetTimer, UseSkill2, %DelaySkill2%
-        } else {
-            SetTimer, UseSkill2, off
-        }
-        if (DelaySkill3 > 0) {
-            SetTimer, UseSkill3, %DelaySkill3%
-        } else {
-            SetTimer, UseSkill3, off
-        }
-        if (DelaySkill4 > 0) {
-            SetTimer, UseSkill4, %DelaySkill4%
-        } else {
-            SetTimer, UseSkill4, off
-        }
-        if (DelayLMButton > 0) {
-            SetTimer, UseLMButton, %DelayLMButton%
-        } else {
-            SetTimer, UseLMButton, off
-        }
-        if (DelayRMButton > 0) {
-            SetTimer, UseRMButton, %DelayRMButton%
-        } else {
-            SetTimer, UseRMButton, off
+            if (NormalDelaySkill1 > 0) {
+                SetTimer, UseSkill1, %NormalDelaySkill1%
+            } else {
+                SetTimer, UseSkill1, off
+            }
+            if (NormalDelaySkill2 > 0) {
+                SetTimer, UseSkill2, %NormalDelaySkill2%
+            } else {
+                SetTimer, UseSkill2, off
+            }
+            if (NormalDelaySkill3 > 0) {
+                SetTimer, UseSkill3, %NormalDelaySkill3%
+            } else {
+                SetTimer, UseSkill3, off
+            }
+            if (NormalDelaySkill4 > 0) {
+                SetTimer, UseSkill4, %NormalDelaySkill4%
+            } else {
+                SetTimer, UseSkill4, off
+            }
+            if (NormalDelayLMButton > 0) {
+                SetTimer, UseLMButton, %NormalDelayLMButton%
+            } else {
+                SetTimer, UseLMButton, off
+            }
+            if (NormalDelayRMButton > 0) {
+                SetTimer, UseRMButton, %NormalDelayRMButton%
+            } else {
+                SetTimer, UseRMButton, off
+            }
         }
     } else {
         ; MsgBox % "停火"
@@ -359,22 +399,22 @@ StartPressSkill:
     if (hasValue(APP.FIRE_MODE_DELAY[FireMode], 0)) {
         ControlSend, , {%KeyForceStand% Down}, ahk_class D3 Main Window Class
     }
-    if (DelaySkill1 = 0) {
+    if (NormalDelaySkill1 = 0) {
         ControlSend, , {%KeySkill1% Down}, ahk_class D3 Main Window Class
     }
-    if (DelaySkill2 = 0) {
+    if (NormalDelaySkill2 = 0) {
         ControlSend, , {%KeySkill2% Down}, ahk_class D3 Main Window Class
     }
-    if (DelaySkill3 = 0) {
+    if (NormalDelaySkill3 = 0) {
         ControlSend, , {%KeySkill3% Down}, ahk_class D3 Main Window Class
     }
-    if (DelaySkill4 = 0) {
+    if (NormalDelaySkill4 = 0) {
         ControlSend, , {%KeySkill4% Down}, ahk_class D3 Main Window Class
     }
-    if (DelayLMButton = 0) {
+    if (NormalDelayLMButton = 0) {
         SendInput, {Click Down}
     }
-    if (DelayRMButton = 0) {
+    if (NormalDelayRMButton = 0) {
         SendInput, {Click Right Down}
     }
 Return
@@ -383,22 +423,22 @@ EndPressSkill:
     if (hasValue(APP.FIRE_MODE_DELAY[FireMode], 0)) {
         ControlSend, , {%KeyForceStand% Up}, ahk_class D3 Main Window Class
     }
-    if (DelaySkill1 = 0) {
+    if (NormalDelaySkill1 = 0) {
         ControlSend, , {%KeySkill1% Up}, ahk_class D3 Main Window Class
     }
-    if (DelaySkill2 = 0) {
+    if (NormalDelaySkill2 = 0) {
         ControlSend, , {%KeySkill2% Up}, ahk_class D3 Main Window Class
     }
-    if (DelaySkill3 = 0) {
+    if (NormalDelaySkill3 = 0) {
         ControlSend, , {%KeySkill3% Up}, ahk_class D3 Main Window Class
     }
-    if (DelaySkill4 = 0) {
+    if (NormalDelaySkill4 = 0) {
         ControlSend, , {%KeySkill4% Up}, ahk_class D3 Main Window Class
     }
-    if (DelayLMButton = 0) {
+    if (NormalDelayLMButton = 0) {
         SendInput, {Click Up}
     }
-    if (DelayRMButton = 0) {
+    if (NormalDelayRMButton = 0) {
         SendInput, {Click Right Up}
     }
 Return
@@ -432,6 +472,7 @@ DoFire:
     execAutoFire()
 Return
 
+/*
 ; 切换 自动移动/自动开火
 SwitchAutoMode:
     ; SendInput {F 1} ; 喝药
@@ -445,6 +486,20 @@ SwitchAutoMode:
         execAutoMove()
     }
 Return
+*/
+
+; 切换特别开火模式
+SwitchAutoMode:
+    if (FireStatus) {
+        if (EnableSpecialFireMode) {
+            EnableSpecialFireMode := false
+            execAutoFire()
+        } else if (!EnableSpecialFireMode) {
+            EnableSpecialFireMode := true
+            execAutoFire()
+        }
+    }
+Return
 
 ResetAutoMode:
     MoveStatus := false ; 关闭自动输出
@@ -454,8 +509,10 @@ ResetAutoMode:
 Return
 
 UseHearthstone:
-    Gosub, ResetAutoMode
-    SendInput {T 1}
+    if (MoveStatus or FireStatus) {
+        Gosub, ResetAutoMode
+        SendInput {T 1}
+    }
 Return
 
 ; 一键切巅峰 主属性模式

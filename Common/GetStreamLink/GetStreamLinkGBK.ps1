@@ -9,11 +9,11 @@ $Source = "https://github.com/Cyanashi/AutoTaskScripts/tree/master/Common/GetStr
 #   Version: 1.1.1
 #   Updated: 2020-04-20
 #   Required: ^PowerShell 5.1
-#   Description: Live Stream-link Source Parsing Tool ç›´æ’­æºè·å–å·¥å…·
+#   Description: Live Stream-link Source Parsing Tool Ö±²¥Ô´»ñÈ¡¹¤¾ß
 #   Link: https://ews.ink/develop/Get-Stream-Link
 #=================================================
 
-$Script:Args # ä¸å¿…èµ‹å€¼[ = $args] $Script:Args å·²ç»æ˜¯å‚æ•°äº†
+$Script:Args # ²»±Ø¸³Öµ[ = $args] $Script:Args ÒÑ¾­ÊÇ²ÎÊıÁË
 $Script:Config | Out-Null
 $Script:Input | Out-Null
 $Script:LiveInfo = @{ }
@@ -23,9 +23,9 @@ $Script:AsxData = @{ }
 Add-Type -AssemblyName System.Windows.Forms
 function Get-MsgBox {
     param (
-        [String]$Prompt = "é»˜è®¤å†…å®¹",
+        [String]$Prompt = "Ä¬ÈÏÄÚÈİ",
         [System.Windows.Forms.MessageBoxButtons]$Buttons = [System.Windows.Forms.MessageBoxButtons]::OK,
-        [String]$Title = "é»˜è®¤æ ‡é¢˜",
+        [String]$Title = "Ä¬ÈÏ±êÌâ",
         [System.Windows.Forms.MessageBoxIcon]$Icon = [System.Windows.Forms.MessageBoxIcon]::None
     )
     return [System.Windows.Forms.MessageBox]::Show($Prompt, $Title, $Buttons, $Icon)
@@ -51,17 +51,17 @@ function Write-Log {
 }
 
 function Read-Config {
-    Write-Log "æ­£åœ¨è¯»å–é…ç½®æ–‡ä»¶"
+    Write-Log "ÕıÔÚ¶ÁÈ¡ÅäÖÃÎÄ¼ş"
     $config_path = $Workspace + "\config.json"
     if (Test-Path $config_path) {
         $config_string = Get-Content $config_path -Encoding UTF8
-        # Winèµ„æºç®¡ç†å™¨èœå•æ çš„è·¯å¾„é»˜è®¤ä¸ºåæ–œæ \ å¦‚æœç›´æ¥å¤åˆ¶ç²˜è´´å…¶å®ä¸æ˜¯åˆæ³•çš„JSONæ ¼å¼ æ­¤å¤„è¿›è¡Œè¾“å…¥å®¹é”™
-        Trap { Write-Log "é…ç½®æ–‡ä»¶ä¸æ˜¯æ­£ç¡®çš„ JSON æ ¼å¼" ERROR; return $false }
+        # Win×ÊÔ´¹ÜÀíÆ÷²Ëµ¥À¸µÄÂ·¾¶Ä¬ÈÏÎª·´Ğ±¸Ü\ Èç¹ûÖ±½Ó¸´ÖÆÕ³ÌùÆäÊµ²»ÊÇºÏ·¨µÄJSON¸ñÊ½ ´Ë´¦½øĞĞÊäÈëÈİ´í
+        Trap { Write-Log "ÅäÖÃÎÄ¼ş²»ÊÇÕıÈ·µÄ JSON ¸ñÊ½" ERROR; return $false }
         & { $Script:Config = $config_string.Replace('\\', '/').Replace('\', '/') | ConvertFrom-Json }
         return $true
     }
     else {
-        Write-Log "é…ç½®æ–‡ä»¶ä¸å­˜åœ¨ å°è¯•åˆå§‹åŒ–" WARN
+        Write-Log "ÅäÖÃÎÄ¼ş²»´æÔÚ ³¢ÊÔ³õÊ¼»¯" WARN
         $default_room = New-Object PSObject -Property @{ url = ""; site = "douyu"; room_id = ""; }
         $asx_list = New-Object PSObject -Property @{}
         $config = @{
@@ -70,9 +70,9 @@ function Read-Config {
             default   = $default_room;
             player    = "D:/Program/PotPlayer/PotPlayerMini64.exe";
         }
-        $config | ConvertTo-Json | Out-File 'config.json' # ç¬¬ä¸€æ¬¡å¯åŠ¨ç”Ÿæˆé»˜è®¤é…ç½®æ–‡ä»¶
-        $Script:Config = $config # åº”ç”¨ç¬¬ä¸€æ¬¡ç”Ÿæˆçš„é…ç½®æ–‡ä»¶
-        Write-Log "å·²ç”Ÿæˆé»˜è®¤çš„é…ç½®æ–‡ä»¶"
+        $config | ConvertTo-Json | Out-File 'config.json' # µÚÒ»´ÎÆô¶¯Éú³ÉÄ¬ÈÏÅäÖÃÎÄ¼ş
+        $Script:Config = $config # Ó¦ÓÃµÚÒ»´ÎÉú³ÉµÄÅäÖÃÎÄ¼ş
+        Write-Log "ÒÑÉú³ÉÄ¬ÈÏµÄÅäÖÃÎÄ¼ş"
         return $true
     }
 }
@@ -109,27 +109,27 @@ function Initialize-Input {
         $clipboard = Get-Clipboard
         if ($clipboard | Test-Input) {
             $Script:LiveInfo = $clipboard | Get-LiveInfo
-            Write-Log "ä»å‰ªåˆ‡æ¿è¯»å–åˆ°ç›´æ’­é—´ $($clipboard)" SUCCESS
+            Write-Log "´Ó¼ôÇĞ°å¶ÁÈ¡µ½Ö±²¥¼ä $($clipboard)" SUCCESS
             return $true
         }
         if (![String]::IsNullOrEmpty($Script:Config.default.url)) {
             if (Test-Input $Script:Config.default.url) {
-                Write-Log "å·²è®¾ç½®é»˜è®¤ç›´æ’­é—´ $($Script:Config.default.url)" SUCCESS
+                Write-Log "ÒÑÉèÖÃÄ¬ÈÏÖ±²¥¼ä $($Script:Config.default.url)" SUCCESS
                 $Script:LiveInfo = $Script:Config.default.url | Get-LiveInfo
                 return $true
             }
-            Write-Log "å·²è®¾ç½®é»˜è®¤ç›´æ’­é—´ ä½†ä¸æ”¯æŒè¯¥url è¯·ç¡®è®¤æ˜¯æ­¤è„šæœ¬æ”¯æŒçš„ç›´æ’­é—´åœ°å€" WARN
+            Write-Log "ÒÑÉèÖÃÄ¬ÈÏÖ±²¥¼ä µ«²»Ö§³Ö¸Ãurl ÇëÈ·ÈÏÊÇ´Ë½Å±¾Ö§³ÖµÄÖ±²¥¼äµØÖ·" WARN
         }
         if (![String]::IsNullOrEmpty($Script:Config.default.room_id)) {
             $Script:LiveInfo.Room = $Script:Config.default.room_id
-            Write-Log "å·²è®¾ç½®é»˜è®¤ç›´æ’­é—´æˆ¿é—´å· $($Script:LiveInfo.Room)" SUCCESS
+            Write-Log "ÒÑÉèÖÃÄ¬ÈÏÖ±²¥¼ä·¿¼äºÅ $($Script:LiveInfo.Room)" SUCCESS
             if ($Script:Config.default.site -notmatch "\b(bilibili|cc|douyu|huya)\b") {
                 $Script:LiveInfo.Site = "douyu"
-                Write-Log "æœªæ£€æµ‹åˆ°åˆæ³•çš„ç›´æ’­å¹³å°è®¾ç½® å·²é»˜è®¤è§†ä¸ºæ–—é±¼ç›´æ’­æˆ¿é—´å·" WARN
+                Write-Log "Î´¼ì²âµ½ºÏ·¨µÄÖ±²¥Æ½Ì¨ÉèÖÃ ÒÑÄ¬ÈÏÊÓÎª¶·ÓãÖ±²¥·¿¼äºÅ" WARN
             }
             else {
                 $Script:LiveInfo.Site = $Script:Config.default.site
-                Write-Log "å·²è®¾ç½®é»˜è®¤ç›´æ’­å¹³å° $($Script:Config.default.site)" SUCCESS
+                Write-Log "ÒÑÉèÖÃÄ¬ÈÏÖ±²¥Æ½Ì¨ $($Script:Config.default.site)" SUCCESS
             }
             return $true
         }
@@ -137,107 +137,107 @@ function Initialize-Input {
     }
     else {
         if ([String]::IsNullOrEmpty($Script:Args[1])) {
-            # å°±ä¸€ä¸ªå‚æ•°
+            # ¾ÍÒ»¸ö²ÎÊı
             if (Test-Input $Script:Args[0]) {
-                # æ˜¯ç›´æ’­é—´å®Œæ•´åœ°å€
+                # ÊÇÖ±²¥¼äÍêÕûµØÖ·
                 $Script:LiveInfo = $Script:Args[0] | Get-LiveInfo
-                Write-Log "å·²åº”ç”¨ç›´æ’­é—´åœ°å€ $($Script:Args[0])" SUCCESS
+                Write-Log "ÒÑÓ¦ÓÃÖ±²¥¼äµØÖ· $($Script:Args[0])" SUCCESS
                 return $true
             }
             elseif ($Script:Args[0] -match '^(\w+)$') {
-                # ä»…ç›´æ’­é—´æˆ¿é—´å·
+                # ½öÖ±²¥¼ä·¿¼äºÅ
                 $Script:LiveInfo.Room = $Script:Args[0]
-                Write-Log "å·²åº”ç”¨ç›´æ’­é—´æˆ¿é—´å· $($Script:Args[0])" SUCCESS
+                Write-Log "ÒÑÓ¦ÓÃÖ±²¥¼ä·¿¼äºÅ $($Script:Args[0])" SUCCESS
                 if ($Script:Config.default.site -notmatch "\b(bilibili|cc|douyu|huya)\b") {
                     $Script:LiveInfo.Site = "douyu"
-                    Write-Log "æœªæ£€æµ‹åˆ°åˆæ³•çš„ç›´æ’­å¹³å°è®¾ç½® å·²é»˜è®¤è§†ä¸ºæ–—é±¼ç›´æ’­æˆ¿é—´å·" WARN
+                    Write-Log "Î´¼ì²âµ½ºÏ·¨µÄÖ±²¥Æ½Ì¨ÉèÖÃ ÒÑÄ¬ÈÏÊÓÎª¶·ÓãÖ±²¥·¿¼äºÅ" WARN
                 }
                 else {
                     $Script:LiveInfo.Site = $Script:Config.default.site
-                    Write-Log "å·²è®¾ç½®é»˜è®¤ç›´æ’­å¹³å° $($Script:Config.default.site)" SUCCESS
+                    Write-Log "ÒÑÉèÖÃÄ¬ÈÏÖ±²¥Æ½Ì¨ $($Script:Config.default.site)" SUCCESS
                 }
                 return $true
             }
             return $false
         }
         else {
-            # æœ‰ä¸¤ä¸ªå‚æ•°
+            # ÓĞÁ½¸ö²ÎÊı
             if (Test-Path $Script:Args[0]) {
-                # ç¬¬ä¸€ä¸ªå‚æ•°æ˜¯æ’­æ”¾å™¨ ç¬¬äºŒä¸ªå‚æ•°æ˜¯ç›´æ’­é—´
-                # TODO æ˜¯å¦è¦å¼€ä¸´æ—¶å˜é‡å­˜å‘½ä»¤è¡Œä¼ çš„æ’­æ”¾å™¨
-                $Script:Config.player = $Script:Args[0] # ä¸å¼€ä¸´æ—¶å˜é‡ ç›´æ¥ç”¨å…¨å±€å˜é‡å­˜çš„è¯ æ¯æ¬¡æ‰§è¡Œå®Œå‘½ä»¤è¡Œåå¯èƒ½ä¼šè¦†ç›–å½“å‰çš„é…ç½®æ–‡ä»¶
-                Write-Log "å·²åº”ç”¨æ’­æ”¾å™¨è·¯å¾„ $($Script:Args[0])" SUCCESS
+                # µÚÒ»¸ö²ÎÊıÊÇ²¥·ÅÆ÷ µÚ¶ş¸ö²ÎÊıÊÇÖ±²¥¼ä
+                # TODO ÊÇ·ñÒª¿ªÁÙÊ±±äÁ¿´æÃüÁîĞĞ´«µÄ²¥·ÅÆ÷
+                $Script:Config.player = $Script:Args[0] # ²»¿ªÁÙÊ±±äÁ¿ Ö±½ÓÓÃÈ«¾Ö±äÁ¿´æµÄ»° Ã¿´ÎÖ´ĞĞÍêÃüÁîĞĞºó¿ÉÄÜ»á¸²¸Çµ±Ç°µÄÅäÖÃÎÄ¼ş
+                Write-Log "ÒÑÓ¦ÓÃ²¥·ÅÆ÷Â·¾¶ $($Script:Args[0])" SUCCESS
                 if (Test-Input $Script:Args[1]) {
-                    # ç¬¬äºŒä¸ªå‚æ•°æ˜¯ç›´æ’­é—´å®Œæ•´åœ°å€
+                    # µÚ¶ş¸ö²ÎÊıÊÇÖ±²¥¼äÍêÕûµØÖ·
                     $Script:LiveInfo = $Script:Args[1] | Get-LiveInfo
-                    Write-Log "å·²åº”ç”¨ç›´æ’­é—´åœ°å€ $($Script:Args[1])" SUCCESS
+                    Write-Log "ÒÑÓ¦ÓÃÖ±²¥¼äµØÖ· $($Script:Args[1])" SUCCESS
                     return $true
                 }
                 elseif ($Script:Args[1] -match '^(\w+)$') {
-                    # ç¬¬äºŒä¸ªå‚æ•°ä»…ç›´æ’­é—´æˆ¿é—´å·
+                    # µÚ¶ş¸ö²ÎÊı½öÖ±²¥¼ä·¿¼äºÅ
                     $Script:LiveInfo.Room = $Script:Args[1]
-                    Write-Log "å·²åº”ç”¨ç›´æ’­é—´æˆ¿é—´å· $($Script:Args[1])" SUCCESS
+                    Write-Log "ÒÑÓ¦ÓÃÖ±²¥¼ä·¿¼äºÅ $($Script:Args[1])" SUCCESS
                     if ($Script:Config.default.site -notmatch "\b(bilibili|cc|douyu|huya)\b") {
                         $Script:LiveInfo.Site = "douyu"
-                        Write-Log "æœªæ£€æµ‹åˆ°åˆæ³•çš„ç›´æ’­å¹³å°è®¾ç½® å·²é»˜è®¤è§†ä¸ºæ–—é±¼ç›´æ’­æˆ¿é—´å·" WARN
+                        Write-Log "Î´¼ì²âµ½ºÏ·¨µÄÖ±²¥Æ½Ì¨ÉèÖÃ ÒÑÄ¬ÈÏÊÓÎª¶·ÓãÖ±²¥·¿¼äºÅ" WARN
                     }
                     else {
                         $Script:LiveInfo.Site = $Script:Config.default.site
-                        Write-Log "å·²è®¾ç½®é»˜è®¤ç›´æ’­å¹³å° $($Script:Config.default.site)" SUCCESS
+                        Write-Log "ÒÑÉèÖÃÄ¬ÈÏÖ±²¥Æ½Ì¨ $($Script:Config.default.site)" SUCCESS
                     }
                     return $true
                 }
                 else {
-                    Write-Log "æ— æ³•åº”ç”¨ç›´æ’­é—´åœ°å€ $($Script:Args[1])" WARN
+                    Write-Log "ÎŞ·¨Ó¦ÓÃÖ±²¥¼äµØÖ· $($Script:Args[1])" WARN
                     return $false
                 }
             }
             else {
-                # ç¬¬ä¸€ä¸ªå‚æ•°æ˜¯ç›´æ’­é—´ ç¬¬äºŒä¸ªå‚æ•°æ˜¯æ’­æ”¾å™¨
+                # µÚÒ»¸ö²ÎÊıÊÇÖ±²¥¼ä µÚ¶ş¸ö²ÎÊıÊÇ²¥·ÅÆ÷
                 if (Test-Input $Script:Args[0]) {
-                    # ç¬¬ä¸€ä¸ªå‚æ•°æ˜¯ç›´æ’­é—´å®Œæ•´åœ°å€
+                    # µÚÒ»¸ö²ÎÊıÊÇÖ±²¥¼äÍêÕûµØÖ·
                     $Script:LiveInfo = $Script:Args[0] | Get-LiveInfo
-                    Write-Log "å·²åº”ç”¨ç›´æ’­é—´åœ°å€ $($Script:Args[0])" SUCCESS
+                    Write-Log "ÒÑÓ¦ÓÃÖ±²¥¼äµØÖ· $($Script:Args[0])" SUCCESS
                 }
                 elseif ($Script:Args[0] -match '^(\w+)$') {
-                    # ç¬¬ä¸€ä¸ªå‚æ•°ä»…ç›´æ’­é—´æˆ¿é—´å·
+                    # µÚÒ»¸ö²ÎÊı½öÖ±²¥¼ä·¿¼äºÅ
                     $Script:LiveInfo.Room = $Script:Args[0]
-                    Write-Log "å·²åº”ç”¨ç›´æ’­é—´æˆ¿é—´å· $($Script:Args[0])" SUCCESS
+                    Write-Log "ÒÑÓ¦ÓÃÖ±²¥¼ä·¿¼äºÅ $($Script:Args[0])" SUCCESS
                     if ($Script:Config.default.site -notmatch "\b(bilibili|cc|douyu|huya)\b") {
                         $Script:LiveInfo.Site = "douyu"
-                        Write-Log "æœªæ£€æµ‹åˆ°åˆæ³•çš„ç›´æ’­å¹³å°è®¾ç½® å·²é»˜è®¤è§†ä¸ºæ–—é±¼ç›´æ’­æˆ¿é—´å·" WARN
+                        Write-Log "Î´¼ì²âµ½ºÏ·¨µÄÖ±²¥Æ½Ì¨ÉèÖÃ ÒÑÄ¬ÈÏÊÓÎª¶·ÓãÖ±²¥·¿¼äºÅ" WARN
                     }
                     else {
                         $Script:LiveInfo.Site = $Script:Config.default.site
-                        Write-Log "å·²è®¾ç½®é»˜è®¤ç›´æ’­å¹³å° $($Script:Config.default.site)" SUCCESS
+                        Write-Log "ÒÑÉèÖÃÄ¬ÈÏÖ±²¥Æ½Ì¨ $($Script:Config.default.site)" SUCCESS
                     }
                 }
                 else {
-                    # æ‰“å°å‚æ•°å¹¶æŒ‡å‡ºé”™è¯¯éƒ¨åˆ†
+                    # ´òÓ¡²ÎÊı²¢Ö¸³ö´íÎó²¿·Ö
                     if ([String]::IsNullOrEmpty($Script:Args[0])) { $input_args = [String]$Script:Args[0] }
                     else {
                         $input_args = [String]$Script:Args[0]
                         For ($i = 1; $i -lt $Script:Args.Count; $i++) { $input_args += " $($Script:Args[$i])" }
                     }
-                    Write-Log "è¾“å…¥å‚æ•°éæ³• > $($input_args)`n[$($Script:Args[0])] æ—¢ä¸æ˜¯ç›´æ’­é—´ä¹Ÿä¸æ˜¯æ’­æ”¾å™¨" WARN
+                    Write-Log "ÊäÈë²ÎÊı·Ç·¨ > $($input_args)`n[$($Script:Args[0])] ¼È²»ÊÇÖ±²¥¼äÒ²²»ÊÇ²¥·ÅÆ÷" WARN
                     return $false
                 }
                 if (Test-Path $Script:Args[1]) {
-                    # ç¬¬äºŒä¸ªå‚æ•°å¯ç”¨çš„æ˜¯æ’­æ”¾å™¨
+                    # µÚ¶ş¸ö²ÎÊı¿ÉÓÃµÄÊÇ²¥·ÅÆ÷
                     $Script:Config.player = $Script:Args[1]
-                    Write-Log "å·²åº”ç”¨æ’­æ”¾å™¨è·¯å¾„ $($Script:Args[1])" SUCCESS
+                    Write-Log "ÒÑÓ¦ÓÃ²¥·ÅÆ÷Â·¾¶ $($Script:Args[1])" SUCCESS
                     return $true
                 }
                 else {
-                    # ç¬¬äºŒä¸ªå‚æ•°ä¸æ˜¯å¯ç”¨çš„æ’­æ”¾å™¨
-                    Write-Log "è¾“å…¥çš„æ’­æ”¾å™¨è·¯å¾„éæ³• $($Script:Args[1])" WARN
+                    # µÚ¶ş¸ö²ÎÊı²»ÊÇ¿ÉÓÃµÄ²¥·ÅÆ÷
+                    Write-Log "ÊäÈëµÄ²¥·ÅÆ÷Â·¾¶·Ç·¨ $($Script:Args[1])" WARN
                     if (Test-Path $Script:Config.player) {
-                        # ä½†é…ç½®æ–‡ä»¶è®¾ç½®äº†å¯ç”¨çš„æ’­æ”¾å™¨
-                        Write-Log "å·²ä½¿ç”¨é…ç½®æ–‡ä»¶è®¾ç½®çš„æ’­æ”¾å™¨è·¯å¾„ $($Script:Config.player)"
+                        # µ«ÅäÖÃÎÄ¼şÉèÖÃÁË¿ÉÓÃµÄ²¥·ÅÆ÷
+                        Write-Log "ÒÑÊ¹ÓÃÅäÖÃÎÄ¼şÉèÖÃµÄ²¥·ÅÆ÷Â·¾¶ $($Script:Config.player)"
                         return $true
                     }
                     else {
-                        # ERROR æ²¡æœ‰å¯ç”¨çš„æ’­æ”¾å™¨
+                        # ERROR Ã»ÓĞ¿ÉÓÃµÄ²¥·ÅÆ÷
                         return $false
                     }
                 }
@@ -248,7 +248,7 @@ function Initialize-Input {
 
 function Get-StreamLink {
     if ($null -eq $Script:LiveInfo.Room) {
-        return "æ²¡æœ‰è®¾ç½®ç›´æ’­é—´æˆ¿é—´å·"
+        return "Ã»ÓĞÉèÖÃÖ±²¥¼ä·¿¼äºÅ"
     }
     $URI = @{
         Bilibili = "https://api.live.bilibili.com/xlive/web-room/v1/index/getRoomPlayInfo?room_id=$($Script:LiveInfo.Room)&play_url=1&mask=1&qn=0&platform=web";
@@ -263,14 +263,14 @@ function Get-StreamLink {
             return $response.message
         }
         elseif ($response.data.live_status -eq 0) {
-            return "Bç«™ç›´æ’­é—´$($Script:LiveInfo.Room)æ²¡æœ‰å¼€æ’­"
+            return "BÕ¾Ö±²¥¼ä$($Script:LiveInfo.Room)Ã»ÓĞ¿ª²¥"
         }
-        Write-Log "æ•°æ®æŠ“å–æˆåŠŸ å¼€å§‹è§£æç›´æ’­æº..."
+        Write-Log "Êı¾İ×¥È¡³É¹¦ ¿ªÊ¼½âÎöÖ±²¥Ô´..."
         $user_info_api = "http://api.bilibili.com/x/space/acc/info?mid=$($response.data.uid)&jsonp=jsonp"
         $streamer_info = Invoke-WebRequest -URI $user_info_api -UseBasicParsing | Select-Object -ExpandProperty Content | ConvertFrom-Json
         $Script:Stream.Streamer = $streamer_info.data.name
         $temp_link = "https://cn-hbxy-cmcc-live-01.live-play.acgvideo.com/live-bvc/live_" + ($response.data.play_url.durl[0].url -split "/live_")[1]
-        $Script:Stream.Link = ($temp_link -split ".flv?")[0].Replace("_1500", "_1500") + ".m3u8" # ç»æµ‹è¯•æŸäº›ç›´æ’­æºåˆ æ‰æ¸…æ™°åº¦ç”»é¢ä¼šæŸå
+        $Script:Stream.Link = ($temp_link -split ".flv?")[0].Replace("_1500", "_1500") + ".m3u8" # ¾­²âÊÔÄ³Ğ©Ö±²¥Ô´É¾µôÇåÎú¶È»­Ãæ»áËğ»µ
         return $null
     }
     elseif ($Script:LiveInfo.Site.ToLower() -eq "cc") {
@@ -289,15 +289,15 @@ function Get-StreamLink {
         }
         if ($null -ne $response.code) {
             if ($response.code -eq "Gone") {
-                return "ç½‘æ˜“CCç›´æ’­é—´$($Script:LiveInfo.Room)æ²¡æœ‰å¼€æ’­"
+                return "ÍøÒ×CCÖ±²¥¼ä$($Script:LiveInfo.Room)Ã»ÓĞ¿ª²¥"
             }
             else {
-                return "ç½‘æ˜“CCç›´æ’­é—´$($Script:LiveInfo.Room)å·²ç»å¼€æ’­"
+                return "ÍøÒ×CCÖ±²¥¼ä$($Script:LiveInfo.Room)ÒÑ¾­¿ª²¥"
             }
         }
-        # æ•°æ®æŠ“å–æˆåŠŸ å¼€å§‹è§£æç›´æ’­æº...
-        Write-Log "æ•°æ®æŠ“å–æˆåŠŸ å¼€å§‹è§£æç›´æ’­æº..."
-        $Script:Stream.Streamer = $Script:LiveInfo.Room #TODO è·å–ä¸»æ’­åå­—
+        # Êı¾İ×¥È¡³É¹¦ ¿ªÊ¼½âÎöÖ±²¥Ô´...
+        Write-Log "Êı¾İ×¥È¡³É¹¦ ¿ªÊ¼½âÎöÖ±²¥Ô´..."
+        $Script:Stream.Streamer = $Script:LiveInfo.Room #TODO »ñÈ¡Ö÷²¥Ãû×Ö
         $Script:Stream.Link = $response.videourl
         return $null
     }
@@ -305,13 +305,13 @@ function Get-StreamLink {
         $response = Invoke-WebRequest -URI $URI.Douyu -UseBasicParsing | Select-Object -ExpandProperty Content | ConvertFrom-Json
         if ($response.state -eq "NO") {
             Write-Log "$($response.info)" DEBUG
-            return "æ–—é±¼ç›´æ’­é—´$($Script:LiveInfo.Room)æ²¡æœ‰å¼€æ’­"
+            return "¶·ÓãÖ±²¥¼ä$($Script:LiveInfo.Room)Ã»ÓĞ¿ª²¥"
         }
-        Write-Log "æ•°æ®æŠ“å–æˆåŠŸ å¼€å§‹è§£æç›´æ’­æº..."
+        Write-Log "Êı¾İ×¥È¡³É¹¦ ¿ªÊ¼½âÎöÖ±²¥Ô´..."
         $Script:Stream.Streamer = $response.Rendata.data.nickname
         # $temptx2play1.douyucdn.cn" + ($response.Rendata.link -split "douyucdn.cn")[1]
-        # $Script:Stream.Link =_link = "http:// (($temp_link -split ".flv?")[0] -split "_")[0] + "_4000p.m3u8" # ç»æµ‹è¯•æŸäº›ç›´æ’­æºåˆ æ‰æ¸…æ™°åº¦ä¹‹åæ— æ³•æ’­æ”¾ å› æ­¤ç»Ÿä¸€åŠ ä¸Š4000pçš„æ¸…æ™°åº¦åç¼€
-        # æ­¤æ–¹æ³• 2020.7.29 å·²ç»å¤±æ•ˆ
+        # $Script:Stream.Link =_link = "http:// (($temp_link -split ".flv?")[0] -split "_")[0] + "_4000p.m3u8" # ¾­²âÊÔÄ³Ğ©Ö±²¥Ô´É¾µôÇåÎú¶ÈÖ®ºóÎŞ·¨²¥·Å Òò´ËÍ³Ò»¼ÓÉÏ4000pµÄÇåÎú¶Èºó×º
+        # ´Ë·½·¨ 2020.7.29 ÒÑ¾­Ê§Ğ§
         $Script:Stream.Link = $response.Rendata.link
         return $null
     }
@@ -323,9 +323,9 @@ function Get-StreamLink {
         # $temp_link = [regex]::matches($response, "hasvedio: '(.*\.m3u8).*", "IgnoreCase")
         $live_status = (($response -split "totalCount: '")[1] -split "',")[0]
         if ($live_status -eq "") {
-            return "è™ç‰™ç›´æ’­é—´$($Script:LiveInfo.Room)æ²¡æœ‰å¼€æ’­"
+            return "»¢ÑÀÖ±²¥¼ä$($Script:LiveInfo.Room)Ã»ÓĞ¿ª²¥"
         }
-        Write-Log "æ•°æ®æŠ“å–æˆåŠŸ å¼€å§‹è§£æç›´æ’­æº..."
+        Write-Log "Êı¾İ×¥È¡³É¹¦ ¿ªÊ¼½âÎöÖ±²¥Ô´..."
         $Script:Stream.Streamer = (($response -split "ANTHOR_NICK = '")[1] -split "';")[0]
         $Script:Stream.Link = "http://al.rtmp.huya.com/backsrc/" + ((($response -split "hasvedio: '")[1] -split "_")[0] -split "src/")[1] + ".m3u8"
         return $null
@@ -334,18 +334,18 @@ function Get-StreamLink {
 
 function Select-StreamLink {
     Set-Clipboard $Script:Stream.Link
-    # Write-Log "ç›´æ’­æºè§£ææˆåŠŸ å·²å¤åˆ¶åˆ°å‰ªåˆ‡æ¿`nå°†ä»¥ $($Choose) çš„æ–¹å¼å¤„ç†ç›´æ’­æº`n0å¼¹çª—è¯¢é—® 1ç›´æ¥æ’­æ”¾ 2ç”Ÿæˆasxæ–‡ä»¶ 3ç›´æ¥é€€å‡º" DEBUG
+    # Write-Log "Ö±²¥Ô´½âÎö³É¹¦ ÒÑ¸´ÖÆµ½¼ôÇĞ°å`n½«ÒÔ $($Choose) µÄ·½Ê½´¦ÀíÖ±²¥Ô´`n0µ¯´°Ñ¯ÎÊ 1Ö±½Ó²¥·Å 2Éú³ÉasxÎÄ¼ş 3Ö±½ÓÍË³ö" DEBUG
     $Choose = $Script:Config.after_get
     if ($Choose -eq 0) {
         $thePrompt = @"
-æˆåŠŸä»$($Script:Stream.Streamer)ç›´æ’­é—´ï¼ˆ$($Script:LiveInfo.Site)/$($Script:LiveInfo.Room)ï¼‰è·å–åˆ°ç›´æ’­æº $($Script:Stream.Link)
-ç›´æ’­æºå·²ç»å¤åˆ¶åˆ°å‰ªåˆ‡æ¿ï¼Œä½¿ç”¨ Ctrl+V ç²˜è´´ã€‚`n
-å½“å‰é¢„è®¾çš„æ’­æ”¾å™¨ä¸º $($Script:Config.player)`n
-ç‚¹å‡»ã€Œæ˜¯ã€ç›´æ¥ä½¿ç”¨æœ¬åœ°æ’­æ”¾å™¨æ’­æ”¾
-ç‚¹å‡»ã€Œå¦ã€ç”Ÿæˆ.asxæ–‡ä»¶
-ç‚¹å‡»ã€Œå–æ¶ˆã€ç»“æŸç¨‹åº
+³É¹¦´Ó$($Script:Stream.Streamer)Ö±²¥¼ä£¨$($Script:LiveInfo.Site)/$($Script:LiveInfo.Room)£©»ñÈ¡µ½Ö±²¥Ô´ $($Script:Stream.Link)
+Ö±²¥Ô´ÒÑ¾­¸´ÖÆµ½¼ôÇĞ°å£¬Ê¹ÓÃ Ctrl+V Õ³Ìù¡£`n
+µ±Ç°Ô¤ÉèµÄ²¥·ÅÆ÷Îª $($Script:Config.player)`n
+µã»÷¡¸ÊÇ¡¹Ö±½ÓÊ¹ÓÃ±¾µØ²¥·ÅÆ÷²¥·Å
+µã»÷¡¸·ñ¡¹Éú³É.asxÎÄ¼ş
+µã»÷¡¸È¡Ïû¡¹½áÊø³ÌĞò
 "@
-        $playConfirm = Get-MsgBox -Title "ç›´æ’­æºè·å–æˆåŠŸ" -Prompt $thePrompt -Buttons YesNoCancel -Icon Question
+        $playConfirm = Get-MsgBox -Title "Ö±²¥Ô´»ñÈ¡³É¹¦" -Prompt $thePrompt -Buttons YesNoCancel -Icon Question
         if ($playConfirm -eq 'Yes') {
             $Choose = 1
         }
@@ -357,14 +357,14 @@ function Select-StreamLink {
         }
     }
     if ($Choose -eq 1) {
-        Write-Log "å°è¯•å¯åŠ¨æœ¬åœ°æ’­æ”¾å™¨ $($Script:Config.player)"
+        Write-Log "³¢ÊÔÆô¶¯±¾µØ²¥·ÅÆ÷ $($Script:Config.player)"
         Start-Process $Script:Config.player -Argumentlist $Script:Stream.Link
     }
     elseif ($Choose -eq 2) {
         $asx_content = @"
 <asx version=`"3.0`">
     <entry>
-        <title>[$($Script:LiveInfo.Site)_$($Script:LiveInfo.Room)]$($Script:Stream.Streamer)çš„ç›´æ’­é—´</title>
+        <title>[$($Script:LiveInfo.Site)_$($Script:LiveInfo.Room)]$($Script:Stream.Streamer)µÄÖ±²¥¼ä</title>
         <ref href="$($Script:Stream.Link)" />
     </entry>
 </asx>
@@ -375,23 +375,23 @@ function Select-StreamLink {
         }
         $output_path = "$($asx_path)\$($Script:LiveInfo.Site)_$($Script:LiveInfo.Room).asx"
         Write-Output $asx_content | Out-File -filepath $output_path
-        Write-Log "å·²ç”Ÿæˆasxæ–‡ä»¶ $($output_path)" SUCCESS
+        Write-Log "ÒÑÉú³ÉasxÎÄ¼ş $($output_path)" SUCCESS
     }
     elseif ($Choose -eq 3) {
-        Write-Log "é€‰æ‹©é€€å‡º"
+        Write-Log "Ñ¡ÔñÍË³ö"
     }
 }
 
 function Get-AsxList {
     if ($null -ne $Script:Config.asx_list -and ![String]::IsNullOrEmpty($Script:Config.asx_list.PSObject.ToString())) {
-        Write-Log "æ£€æµ‹åˆ°é…ç½®æ–‡ä»¶ä¸­è®¾ç½®äº†è‡ªåŠ¨è·å–çš„ç›´æ’­åˆ—è¡¨`nå°†ç›´æ¥æŒ‰ç…§ config.json ä¸­ asx_list é¡¹è®¾ç½®çš„åˆ—è¡¨ç”Ÿæˆasxæ–‡ä»¶`nå¦‚æœéœ€è¦ç¦ç”¨æ­¤åŠŸèƒ½è¯·å°†é…ç½®æ–‡ä»¶ä¸­ asx_list é¡¹{}ä¸­çš„å†…å®¹åˆ é™¤" NOTICE
-        # Write-Log "list PSCustomObject ä¸º $($Script:Config.asx_list)" DEBUG
+        Write-Log "¼ì²âµ½ÅäÖÃÎÄ¼şÖĞÉèÖÃÁË×Ô¶¯»ñÈ¡µÄÖ±²¥ÁĞ±í`n½«Ö±½Ó°´ÕÕ config.json ÖĞ asx_list ÏîÉèÖÃµÄÁĞ±íÉú³ÉasxÎÄ¼ş`nÈç¹ûĞèÒª½ûÓÃ´Ë¹¦ÄÜÇë½«ÅäÖÃÎÄ¼şÖĞ asx_list Ïî{}ÖĞµÄÄÚÈİÉ¾³ı" NOTICE
+        # Write-Log "list PSCustomObject Îª $($Script:Config.asx_list)" DEBUG
         $asx_content = "<asx version=`"3.0`">`n"
         foreach ($key in $Script:Config.asx_list.PSObject.Properties.Name) {
             $Script:AsxData[$key] = $Script:Config.asx_list.$key
             # Write-Log "$($key) = $($Script:AsxData[$key])" DEBUG
             $Script:LiveInfo = $Script:AsxData[$key] | Get-LiveInfo
-            Write-Log "å¼€å§‹è§£æ $($key)($($Script:AsxData[$key]))..."
+            Write-Log "¿ªÊ¼½âÎö $($key)($($Script:AsxData[$key]))..."
             $res = Get-StreamLink
             if ($null -eq $res) {
                 $asx_content += @"
@@ -404,7 +404,7 @@ function Get-AsxList {
             else {
                 $asx_content += @"
     <entry>
-        <title>[æœªå¼€æ’­][$($Script:LiveInfo.Site)_$($Script:LiveInfo.Room)]$($key)</title>
+        <title>[Î´¿ª²¥][$($Script:LiveInfo.Site)_$($Script:LiveInfo.Room)]$($key)</title>
         <ref href="$($Script:AsxData[$key])" />
     </entry>`n
 "@
@@ -415,43 +415,43 @@ function Get-AsxList {
         if (!(Test-Path $asx_path)) {
             New-Item -ItemType Directory -Force -Path $asx_path
         }
-        $output_path = "$($asx_path)\ç›´æ’­åˆ—è¡¨.asx"
+        $output_path = "$($asx_path)\Ö±²¥ÁĞ±í.asx"
         Write-Output $asx_content | Out-File -filepath $output_path
-        Write-Log "å·²ç”Ÿæˆasxåˆ—è¡¨ $($output_path)" SUCCESS
+        Write-Log "ÒÑÉú³ÉasxÁĞ±í $($output_path)" SUCCESS
         exit
     }
 }
 
 Write-Log -Level DIVIDER
 
-Write-Log "ç›´æ’­æºè§£æå·¥å…· Live Stream-link Source Parsing Tool v$($Version)" NOTICE
-Write-Log "Cyanashi æœ€åæ›´æ–°äº $($Updated)" NOTICE
-Write-Log "æœ€æ–°æºç  $($Source)" NOTICE
-Write-Log "å¼€å‘æ—¥å¿— https://ews.ink/develop/Get-Stream-Link" NOTICE
+Write-Log "Ö±²¥Ô´½âÎö¹¤¾ß Live Stream-link Source Parsing Tool v$($Version)" NOTICE
+Write-Log "Cyanashi ×îºó¸üĞÂÓÚ $($Updated)" NOTICE
+Write-Log "×îĞÂÔ´Âë $($Source)" NOTICE
+Write-Log "¿ª·¢ÈÕÖ¾ https://ews.ink/develop/Get-Stream-Link" NOTICE
 
 Write-Log -Level DIVIDER
 
 if (Read-Config) {
-    Write-Log "é…ç½®æ–‡ä»¶è¯»å–æˆåŠŸ" SUCCESS
+    Write-Log "ÅäÖÃÎÄ¼ş¶ÁÈ¡³É¹¦" SUCCESS
 }
 else {
-    Write-Log "ç¨‹åºå·²ç»ˆæ­¢" ERROR
-    # TODO æ˜¯å¦é‡æ–°ç”Ÿæˆåˆæ³•çš„é…ç½®æ–‡ä»¶
+    Write-Log "³ÌĞòÒÑÖÕÖ¹" ERROR
+    # TODO ÊÇ·ñÖØĞÂÉú³ÉºÏ·¨µÄÅäÖÃÎÄ¼ş
 }
 
 Write-Log -Level DIVIDER
 
-Write-Log "å½“å‰ç‰ˆæœ¬ä»…æ”¯æŒ æ–—é±¼ è™ç‰™ Bç«™ ç½‘æ˜“cc" NOTICE
+Write-Log "µ±Ç°°æ±¾½öÖ§³Ö ¶·Óã »¢ÑÀ BÕ¾ ÍøÒ×cc" NOTICE
 
 Get-AsxList
 
 if (-not (Initialize-Input)) {
     do {
         try {
-            [ValidatePattern('(?<Site>bilibili|cc\.163|douyu|huya)\b\..*\/\b(?:.*\=)?(?<Room>\w+)')]$Script:Input = Read-Host "è¯·è¾“å…¥æ­£ç¡®çš„ç›´æ’­é—´åœ°å€"
+            [ValidatePattern('(?<Site>bilibili|cc\.163|douyu|huya)\b\..*\/\b(?:.*\=)?(?<Room>\w+)')]$Script:Input = Read-Host "ÇëÊäÈëÕıÈ·µÄÖ±²¥¼äµØÖ·"
             if (Test-Input $Script:Input) {
                 $Script:LiveInfo = $Script:Input | Get-LiveInfo
-                Write-Log "å¼€å§‹è§£æ $($Script:Input)" SUCCESS
+                Write-Log "¿ªÊ¼½âÎö $($Script:Input)" SUCCESS
             }
         }
         catch { }
@@ -462,14 +462,14 @@ Write-Log -Level DIVIDER
 
 $res = Get-StreamLink
 if ($null -eq $res) {
-    Write-Log "è·å–ç›´æ’­æºæˆåŠŸ $($Script:Stream.Link)" SUCCESS
+    Write-Log "»ñÈ¡Ö±²¥Ô´³É¹¦ $($Script:Stream.Link)" SUCCESS
     Select-StreamLink
 }
 else {
-    Write-Log "å°è¯•è·å–ç›´æ’­æºå¤±è´¥ $($res) $($Script:Stream.Link)" ERROR
+    Write-Log "³¢ÊÔ»ñÈ¡Ö±²¥Ô´Ê§°Ü $($res) $($Script:Stream.Link)" ERROR
 }
 
 Write-Log -Level DIVIDER
 
-# Read-Host "ä»»åŠ¡å·²ç»“æŸ è¾“å…¥å›è½¦é”®é€€å‡º" | Out-Null
+# Read-Host "ÈÎÎñÒÑ½áÊø ÊäÈë»Ø³µ¼üÍË³ö" | Out-Null
 exit
