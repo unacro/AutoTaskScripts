@@ -89,6 +89,18 @@ def get_cookie_from_chrome(host, plain=True):
         return cookies
 
 
+def get_cookies(url, plain=True):
+    cookies = get_cookie_from_chrome(url)
+    if url[0] != '.':
+        root_host = '.' + url.split('.', 1)[1]
+        root_cookies = get_cookie_from_chrome(root_host)
+        if plain:
+            cookies += "; " + root_cookies
+        else:
+            cookies.update(root_cookies)
+    return cookies
+
+
 def pre_handle(url):
     if url[:8] == 'https://':
         url = url[8:].strip('/')
@@ -117,7 +129,7 @@ def upload_cookie(site):
     # TODO 如需上传 cookie 至服务器 自行构造相关数据结构
     resp_text = post_data(UPLOAD_API, {
         'site': url,
-        'cookies': get_cookie_from_chrome(url),
+        'cookies': get_cookies(url),
         'password': UPLOAD_KEY
     })
     resp = json.loads(resp_text)
@@ -136,7 +148,7 @@ def download_cookie(site):
     save_path = f"./cookies/{url}.txt"
     try:
         with open(save_path, "w", encoding='utf-8') as f:
-            f.write(get_cookie_from_chrome(url))
+            f.write(get_cookies(url))
         print_result(f"成功将 {url} 的 cookie 保存到本地")
     except IOError:
         print_result(f"保存 {url} 的 cookie 到本地失败")
@@ -146,7 +158,23 @@ if __name__ == '__main__':
     config = read_config()
     UPLOAD_API = config['UPLOAD_API']
     UPLOAD_KEY = config['UPLOAD_KEY']
-    upload_cookie("www.v2ex.com")
-    upload_cookie("www.douyu.com")
-    download_cookie("https://www.baidu.com")
-    download_cookie("http://baidu.com")
+
+    # for example
+    # upload_cookie("www.v2ex.com")
+    # upload_cookie("www.douyu.com")
+    # download_cookie("https://www.baidu.com")
+    # download_cookie("http://baidu.com")
+
+    sites = [
+        'www.v2ex.com',
+        'www.douyu.com',
+        'www.52pojie.cn',
+        'keylol.com',
+        'gmgard.com',
+        'mcbbs.net',
+        'music.163.com',
+        'api.bilibili.com',
+        'live.bilibili.com',
+    ]
+    for v in sites:
+        upload_cookie(v)
