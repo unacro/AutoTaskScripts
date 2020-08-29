@@ -387,6 +387,8 @@ function Get-AsxList {
         Write-Log "检测到配置文件中设置了自动获取的直播列表`n将直接按照 config.json 中 asx_list 项设置的列表生成asx文件`n如果需要禁用此功能请将配置文件中 asx_list 项{}中的内容删除" NOTICE
         # Write-Log "list PSCustomObject 为 $($Script:Config.asx_list)" DEBUG
         $asx_content = "<asx version=`"3.0`">`n"
+        $onlineStream = ""
+        $offlineStream = ""
         foreach ($key in $Script:Config.asx_list.PSObject.Properties.Name) {
             $Script:AsxData[$key] = $Script:Config.asx_list.$key
             # Write-Log "$($key) = $($Script:AsxData[$key])" DEBUG
@@ -394,7 +396,7 @@ function Get-AsxList {
             Write-Log "开始解析 $($key)($($Script:AsxData[$key]))..."
             $res = Get-StreamLink
             if ($null -eq $res) {
-                $asx_content += @"
+                $onlineStream += @"
     <entry>
         <title>[$($Script:LiveInfo.Site)_$($Script:LiveInfo.Room)]$($key)</title>
         <ref href="$($Script:Stream.Link)" />
@@ -402,7 +404,7 @@ function Get-AsxList {
 "@
             }
             else {
-                $asx_content += @"
+                $offlineStream += @"
     <entry>
         <title>[未开播][$($Script:LiveInfo.Site)_$($Script:LiveInfo.Room)]$($key)</title>
         <ref href="$($Script:AsxData[$key])" />
@@ -410,6 +412,8 @@ function Get-AsxList {
 "@
             }
         }
+        $asx_content += $onlineStream
+        $asx_content += $offlineStream
         $asx_content += "</asx>"
         $asx_path = "$($Workspace)\live"
         if (!(Test-Path $asx_path)) {
